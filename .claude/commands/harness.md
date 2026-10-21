@@ -1,5 +1,7 @@
 이 프로젝트는 Harness 프레임워크를 사용한다. 아래 워크플로우에 따라 작업을 진행하라.
 
+이 프로젝트에는 역할별 서브에이전트가 `.claude/agents/`에 있다: `frontend-dev`(frontend/ 전담), `backend-dev`(backend/·supabase/ 전담), `project-reviewer`(변경 사항 리뷰, 읽기 전용). step 실행 중 구현 작업이 명확히 한 workspace에 속하면 해당 전담 에이전트에게 위임하는 것을 우선 고려한다. 여러 workspace를 동시에 다루는 step이면 직접 수행하거나 두 에이전트를 순서대로 호출한다.
+
 ---
 
 ## 워크플로우
