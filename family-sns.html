@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>우리가족 톡톡</title>
+<style>
+:root { color-scheme: light;
+  --bg:#FFF8EE; --card:#FFFFFF; --ink:#2B2A33; --muted:#8A8494; --kid:#FFB547; --accent:#6BCB77; --line:#F0E6D6; --warn:#C2364A; }
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,"Apple SD Gothic Neo","Noto Sans KR",sans-serif;background:var(--bg);color:var(--ink);display:flex;justify-content:center;min-height:100vh}
+.app{width:100%;max-width:440px;display:flex;flex-direction:column;height:100vh}
+header{padding:14px 16px 4px}
+.logo{font-size:22px;font-weight:800;letter-spacing:-0.5px}
+.logo span{color:var(--kid)}
+.whoWrap{padding:6px 12px 2px}
+.whoLabel{font-size:11px;color:var(--muted);padding:0 4px 4px}
+.scroll{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+.pill{flex-shrink:0;border:2px solid transparent;background:var(--card);border-radius:999px;padding:6px 11px;font-size:13px;cursor:pointer;font-weight:600;color:var(--muted);position:relative}
+.pill.on{color:var(--ink)}
+.badge{position:absolute;top:-5px;right:-4px;background:var(--warn);color:#fff;font-size:10px;font-weight:800;border-radius:999px;min-width:17px;height:17px;line-height:17px;text-align:center;padding:0 4px}
+nav{display:flex;gap:6px;padding:10px 12px}
+nav button{flex:1;border:none;background:var(--card);border-radius:14px;padding:10px 2px;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted);box-shadow:0 1px 0 var(--line)}
+nav button.on{background:var(--ink);color:#fff}
+main{flex:1;overflow-y:auto;padding:0 12px 12px}
+.panel{display:none}.panel.on{display:block}
+.rooms{position:sticky;top:0;background:var(--bg);padding:2px 0 8px;z-index:2}
+.rooms .pill{border-color:var(--line)}
+.rooms .pill.on{border-color:var(--ink);background:var(--ink);color:#fff}
+.banner{font-size:12px;color:#6A5A44;background:#F6EEDD;border-radius:12px;padding:8px 12px;margin-bottom:10px}
+.q{background:linear-gradient(135deg,#FFE3A8,#FFD0D6);border-radius:18px;padding:14px;margin-bottom:12px}
+.q small{font-size:11px;font-weight:700;color:#A0622D}
+.q p{font-size:16px;font-weight:700;margin-top:4px}
+.msg{display:flex;gap:8px;margin:10px 0;align-items:flex-end}
+.msg.me{flex-direction:row-reverse}
+.av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-size:18px;flex-shrink:0}
+.bub{max-width:72%;padding:10px 13px;border-radius:18px;background:var(--card);font-size:15px;line-height:1.4;word-break:break-word;box-shadow:0 1px 0 var(--line)}
+.msg.me .bub{background:var(--ink);color:#fff}
+.bub.sticker{background:none!important;box-shadow:none;font-size:46px;padding:0}
+.bub.urgent{background:#FFE5E8!important;color:var(--warn)!important;font-weight:700}
+.meta{font-size:10px;color:var(--muted);margin:0 4px 2px}
+.name{font-size:11px;font-weight:700;margin-bottom:2px;color:var(--muted)}
+.react{font-size:12px;margin-top:3px;cursor:pointer;user-select:none}
+.react span{background:#fff;border:1px solid var(--line);border-radius:999px;padding:1px 6px;margin-right:3px}
+.empty{text-align:center;color:var(--muted);font-size:13px;padding:30px 0}
+.compose{padding:8px 12px 14px;border-top:1px solid var(--line)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;scrollbar-width:none}
+.chips button{flex-shrink:0;border:1.5px solid var(--line);background:#fff;border-radius:999px;padding:7px 11px;font-size:13px;cursor:pointer}
+.chips button.urgent{border-color:#FF7A8A;color:var(--warn);font-weight:700}
+.row{display:flex;gap:6px}
+.row input{flex:1;min-width:0;border:none;border-radius:999px;padding:12px 16px;font-size:15px;background:#fff;outline:2px solid var(--line)}
+.row button{border:none;border-radius:999px;padding:0 14px;font-size:20px;background:#fff;cursor:pointer}
+.row button.send{background:var(--accent);color:#fff;font-size:15px;font-weight:700;padding:0 18px}
+.stickers{display:none;grid-template-columns:repeat(6,1fr);gap:4px;padding:8px 0}
+.stickers.on{display:grid}
+.stickers button{font-size:30px;border:none;background:none;cursor:pointer;padding:4px;border-radius:10px}
+.card{background:var(--card);border-radius:18px;padding:16px;margin-bottom:12px;box-shadow:0 1px 0 var(--line)}
+.card h3{font-size:16px;margin-bottom:10px}
+.moods{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.moods button{border:2px solid var(--line);background:#fff;border-radius:14px;padding:10px 0;font-size:30px;cursor:pointer;display:flex;flex-direction:column;align-items:center}
+.moods button small{font-size:11px;color:var(--muted);margin-top:2px}
+.moods button.on{border-color:var(--kid);background:#FFF4DF}
+.fam{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:8px;text-align:center}
+.fam div{font-size:12px;color:var(--muted)} .fam b{display:block;font-size:32px}
+.fam .note{font-size:11px;color:#6A5A44;margin-top:2px}
+.weekKid{margin-bottom:12px}.weekKid:last-child{margin-bottom:0}
+.weekKid .wk{font-size:13px;font-weight:700;margin-bottom:4px}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.week div{font-size:11px;color:var(--muted)}
+.week b{display:block;font-size:22px;height:32px;line-height:32px}
+.week .today{color:var(--ink);font-weight:800}
+.board{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:10px 0}
+.slot{aspect-ratio:1;border-radius:50%;border:2px dashed #E3D6C0;display:grid;place-items:center;font-size:26px}
+.slot.full{border-style:solid;background:#FFF4DF}
+.goal{font-size:14px;background:#F2FBF3;border-radius:12px;padding:10px;color:#2F7A3A;font-weight:600}
+.list li{list-style:none;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px;display:flex;gap:8px;align-items:center}
+.list li:last-child{border:none}
+.sub{color:var(--muted);font-size:12px}
+.btn{border:none;border-radius:12px;padding:11px 14px;font-size:14px;font-weight:700;cursor:pointer;background:var(--ink);color:#fff;width:100%;margin-top:8px}
+.btn.ghost{background:#fff;color:var(--ink);border:1.5px solid var(--line)}
+.btn.small{width:auto;padding:6px 10px;font-size:12px;margin:0}
+.btn.gift{background:var(--accent)}
+.inp{width:100%;border:1.5px solid var(--line);border-radius:12px;padding:10px;font-size:14px;margin-top:6px}
+.lock{font-size:12px;color:var(--muted);background:#F6F1E8;border-radius:10px;padding:8px 10px;margin-top:8px}
+.kidsel{margin-bottom:10px}
+.kidsel .pill{border-color:var(--line)}
+.member{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.member:last-child{border:none}
+.member .grow{flex:1;font-size:15px;font-weight:600}
+.tag{font-size:11px;border-radius:999px;padding:2px 8px;background:#F6F1E8;color:#6A5A44;margin-left:6px;font-weight:600}
+.avpick{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.avpick button{font-size:24px;width:44px;height:44px;border-radius:12px;border:2px solid var(--line);background:#fff;cursor:pointer}
+.avpick button.on{border-color:var(--kid);background:#FFF4DF}
+.toast{position:fixed;bottom:120px;left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 16px;border-radius:999px;font-size:13px;opacity:0;transition:.3s;pointer-events:none;white-space:nowrap;z-index:9}
+.toast.on{opacity:1}
+</style>
+</head>
+<body>
+<div class="app">
+  <header><div class="logo">우리가족 <span>톡톡</span></div></header>
+  <div class="whoWrap">
+    <div class="whoLabel">누구로 사용할까요? (프로토타입용 · 실제 앱에선 각자 폰에서 로그인)</div>
+    <div class="scroll" id="who"></div>
+  </div>
+  <nav id="nav">
+    <button data-t="chat" class="on">💬 대화</button>
+    <button data-t="mood">🌈 기분</button>
+    <button data-t="praise">⭐ 칭찬</button>
+    <button data-t="family">👪 가족</button>
+  </nav>
+
+  <main id="main">
+    <section class="panel on" id="chat">
+      <div class="rooms"><div class="scroll" id="rooms"></div></div>
+      <div id="roomTop"></div>
+      <div id="msgs"></div>
+    </section>
+
+    <section class="panel" id="mood">
+      <div class="card">
+        <h3 id="moodTitle"></h3>
+        <div class="moods" id="moodBtns"></div>
+        <input class="inp" id="moodNote" placeholder="왜 그런 기분이야? (안 써도 괜찮아)">
+        <button class="btn" id="moodSave">기분 알려주기</button>
+        <div class="lock" id="moodPrivacy"></div>
+      </div>
+      <div class="card"><h3>오늘 우리 가족 기분</h3><div class="fam" id="famMood"></div></div>
+      <div class="card"><h3 id="weekTitle"></h3><div id="weeks"></div></div>
+    </section>
+
+    <section class="panel" id="praise">
+      <div class="kidsel scroll" id="kidSel"></div>
+      <div class="card">
+        <h3 id="boardTitle"></h3>
+        <div class="goal" id="goalText"></div>
+        <div class="board" id="board"></div>
+        <div id="parentPraise">
+          <input class="inp" id="praiseWhy" placeholder="무엇을 칭찬할까요? (예: 스스로 숙제했어요)">
+          <button class="btn" id="praiseAdd"></button>
+          <button class="btn ghost" id="praiseAll"></button>
+          <button class="btn gift" id="rewardBtn">🎁 약속 지켰어요! 새 판 시작하기</button>
+        </div>
+        <div class="lock" id="kidLock">🔒 칭찬 스티커는 엄마, 아빠가 붙여줄 수 있어요. 열심히 해보자!</div>
+      </div>
+      <div class="card" id="goalCard">
+        <h3>🎯 목표 바꾸기</h3>
+        <input class="inp" id="goalInp" placeholder="예: 스티커 10개 모으면 보드게임 사기">
+        <button class="btn ghost" id="goalSave">목표 저장</button>
+        <div class="lock">💡 아이마다 나이와 관심사에 맞게 목표를 따로 정할 수 있어요. 아이 화면에는 자기 칭찬판만 보여서 형제끼리 비교되지 않아요.</div>
+      </div>
+      <div class="card"><h3>칭찬 기록</h3><ul class="list" id="praiseList"></ul></div>
+    </section>
+
+    <section class="panel" id="family">
+      <div class="card"><h3>우리 가족</h3><div id="members"></div></div>
+      <div class="card" id="addKidCard">
+        <h3>👶 아이 추가하기</h3>
+        <input class="inp" id="kidName" placeholder="아이 이름 (예: 서아)" maxlength="8">
+        <div class="avpick" id="avPick"></div>
+        <button class="btn" id="addKid">가족에 추가</button>
+        <div class="lock">아이를 추가하면 그 아이와 엄마·아빠만 보는 1:1 방, 아이 전용 칭찬판, 기분 기록이 자동으로 생겨요.</div>
+      </div>
+      <div class="card" id="kidFamNote"><div class="lock" style="margin:0">🔒 가족 추가와 설정은 엄마, 아빠가 할 수 있어요.</div></div>
+      <div class="card" id="resetCard"><button class="btn ghost" id="reset">처음 상태로 되돌리기 (데모 초기화)</button></div>
+    </section>
+  </main>
+
+  <div class="compose" id="compose">
+    <div class="chips" id="chips"></div>
+    <div class="stickers" id="stickers"></div>
+    <div class="row">
+      <button id="stBtn" title="스티커">😊</button>
+      <input id="txt" maxlength="200">
+      <button class="send" id="send">보내기</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const PALETTE = ['#FFB547','#6BCB77','#B28DFF','#FF9F68','#4FC3C7','#F48FB1','#9CCC65'];
+const AVATARS = ['🐣','🦖','🐰','🦊','🐼','🐯','🐨','🦄','🐸','🐧'];
+const QUESTIONS = ['오늘 학교에서 가장 재밌었던 일은?','오늘 점심 반찬 중에 뭐가 제일 맛있었어?','요즘 제일 친한 친구는 누구야?','만약 하루 동안 동물이 된다면 뭐가 되고 싶어?','이번 주말에 가족이랑 뭐 하고 싶어?','오늘 누군가를 도와준 일이 있어?','형제·자매에게 고마웠던 일이 있다면?'];
+const CHIPS = {
+  kid:[['🏫 학교 끝났어요!'],['🏠 집에 도착했어요'],['🍙 배고파요'],['📚 숙제 다 했어요'],['🥰 사랑해요'],['🚨 데리러 와주세요','urgent'],['😢 도와주세요','urgent']],
+  parent:[['잘 도착했니?'],['간식 냉장고에 있어 🍓'],['오늘도 최고야 👍'],['몇 시에 끝나?'],['숙제는 했니?'],['곧 집에 갈게!'],['사랑해 💕']]
+};
+const STICKERS = ['🥰','😆','😭','👍','🎉','💯','🐶','🐱','🍕','🍦','⚽','🌈'];
+const MOODS = [['😆','신나'],['🙂','좋아'],['😐','그냥'],['😢','슬퍼'],['😠','화나']];
+const REACTS = ['❤️','👍','😂'];
+const DOW = ['일','월','화','수','목','금','토'];
+const GOAL_N = 10;
+
+const dk = d => d.toLocaleDateString('sv-SE');
+const daysAgo = n => { const d=new Date(); d.setDate(d.getDate()-n); return d; };
+const today = dk(new Date());
+
+function defaultState(){
+  const now = Date.now();
+  const m = (room,u,t,ago,extra={}) => ({room,u,t,ts:now-ago*60e3,r:{},...extra});
+  const log = {};
+  const w1=['🙂','😆','😐','🙂','😢','😆'], w2=['😆','😆','🙂','😠','🙂','😐'];
+  for(let i=1;i<=6;i++) log[dk(daysAgo(i))] = {k1:{m:w1[6-i]}, k2:{m:w2[6-i]}};
+  log[today] = {mom:{m:'🙂'}, dad:{m:'😐',n:'회의가 많았어'}};
+  return {
+    me:'k1', room:'family', tab:'chat', praiseKid:'k1', read:{},
+    members:[
+      {id:'k1',name:'지우',av:'🐣',c:PALETTE[0],role:'kid'},
+      {id:'k2',name:'민준',av:'🦖',c:PALETTE[1],role:'kid'},
+      {id:'mom',name:'엄마',av:'🌷',c:'#FF7A8A',role:'parent'},
+      {id:'dad',name:'아빠',av:'🐻',c:'#5AA9E6',role:'parent'}
+    ],
+    msgs:[
+      m('family','mom','지우야 오늘 받아쓰기 시험 잘 봤어? 😊',90),
+      m('family','k1','네!! 100점 맞았어요 💯',88,{r:{'❤️':['mom','dad']}}),
+      m('family','dad',null,86,{s:'🎉'}),
+      m('family','k2','나도 오늘 줄넘기 50개 했어!',80),
+      m('family','mom','민준이도 대단하다! 둘 다 최고야 👏',78),
+      m('kid:k1','k1','아빠 저 오늘 친구랑 좀 싸웠어요..',60),
+      m('kid:k1','dad','그랬구나. 저녁에 아빠랑 둘이 얘기해볼까?',55),
+      m('kid:k2','k2','엄마 내일 준비물 색종이래요',40),
+      m('kid:k2','mom','알려줘서 고마워! 내일 아침에 챙겨줄게 🙆‍♀️',35),
+    ],
+    moodLog: log,
+    praise:{
+      k1:[{t:'스스로 일찍 일어났어요',by:'mom'},{t:'동생 숙제를 도와줬어요',by:'dad'},{t:'받아쓰기 100점',by:'mom'}],
+      k2:[{t:'편식 안 하고 다 먹었어요',by:'mom'},{t:'장난감 스스로 정리',by:'dad'},{t:'누나한테 고맙다고 말했어요',by:'mom'},{t:'줄넘기 50개!',by:'dad'},{t:'양치 혼자 했어요',by:'mom'}]
+    },
+    goals:{k1:'주말에 놀이공원 가기 🎡', k2:'공룡 책 사기 📕'}
+  };
+}
+let S = JSON.parse(localStorage.getItem('familyTalk_v2')||'null') || defaultState();
+const save = () => localStorage.setItem('familyTalk_v2', JSON.stringify(S));
+const $ = id => document.getElementById(id);
+const toast = msg => { const t=$('toast'); t.textContent=msg; t.classList.add('on'); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove('on'),1800); };
+const hm = ts => new Date(ts).toLocaleTimeString('ko-KR',{hour:'numeric',minute:'2-digit'});
+const esc = s => String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const M = id => S.members.find(x=>x.id===id) || {id, name:'(떠난 가족)', av:'👤', c:'#ccc', role:'kid'};
+const kids = () => S.members.filter(x=>x.role==='kid');
+const meM = () => M(S.me);
+const isParent = () => meM().role==='parent';
+
+/* ---------- rooms ---------- */
+function rooms(){
+  const me = meM();
+  return me.role==='kid' ? ['family','kid:'+me.id] : ['family', ...kids().map(k=>'kid:'+k.id)];
+}
+function roomLabel(r){
+  if(r==='family') return '👨‍👩‍👧‍👦 우리가족';
+  const k = M(r.slice(4));
+  return isParent() ? `${k.av} ${k.name}랑` : '🔒 엄마아빠랑';
+}
+function unread(r){
+  const t = (S.read[S.me]||{})[r] || 0;
+  return S.msgs.filter(m=>m.room===r && m.u!==S.me && m.ts>t).length;
+}
+function markRead(){
+  if(S.tab!=='chat') return;
+  (S.read[S.me] ||= {})[S.room] = Date.now();
+}
+
+/* ---------- render ---------- */
+function renderWho(){
+  $('who').innerHTML = S.members.map(m=>{
+    const on = m.id===S.me;
+    return `<button class="pill ${on?'on':''}" data-u="${m.id}" style="${on?`border-color:${m.c}`:''}">${m.av} ${esc(m.name)}</button>`;
+  }).join('');
+  $('who').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    S.me=b.dataset.u;
+    if(!rooms().includes(S.room)) S.room='family';
+    if(!isParent()) S.praiseKid=S.me;
+    else if(!kids().some(k=>k.id===S.praiseKid)) S.praiseKid=kids()[0]?.id;
+    save(); renderAll();
+  });
+}
+
+function renderRooms(){
+  $('rooms').innerHTML = rooms().map(r=>{
+    const n = r===S.room ? 0 : unread(r);
+    return `<button class="pill ${r===S.room?'on':''}" data-r="${r}">${roomLabel(r)}${n?`<span class="badge">${n}</span>`:''}</button>`;
+  }).join('');
+  $('rooms').querySelectorAll('button').forEach(b=>b.onclick=()=>{ S.room=b.dataset.r; markRead(); save(); renderChat(); });
+}
+
+function renderChat(){
+  renderRooms();
+  if(S.room==='family'){
+    $('roomTop').innerHTML = `<div class="q"><small>오늘의 가족 질문</small><p>${QUESTIONS[new Date().getDate()%QUESTIONS.length]}</p></div>`;
+  } else {
+    const k = M(S.room.slice(4));
+    $('roomTop').innerHTML = `<div class="banner">🔒 ${esc(k.name)}${isParent()?'':'(나)'}와 엄마·아빠만 볼 수 있는 방이에요. ${kids().length>1?'다른 형제는 볼 수 없어요.':''}</div>`;
+  }
+  const list = S.msgs.map((m,i)=>[m,i]).filter(([m])=>m.room===S.room);
+  $('msgs').innerHTML = list.length ? list.map(([m,i])=>{
+    const u=M(m.u), me=m.u===S.me;
+    const rs = Object.entries(m.r||{}).filter(([,a])=>a.length).map(([e,a])=>`<span>${e} ${a.length}</span>`).join('');
+    return `<div class="msg ${me?'me':''}">
+      ${me?'':`<div class="av" style="background:${u.c}33">${u.av}</div>`}
+      <div>
+        ${me?'':`<div class="name">${esc(u.name)}</div>`}
+        <div class="bub ${m.s?'sticker':''} ${m.urgent?'urgent':''}">${m.s?m.s:esc(m.t)}</div>
+        <div class="react" data-i="${i}">${rs}<span style="opacity:.5">＋</span></div>
+      </div>
+      <div class="meta">${hm(m.ts)}</div>
+    </div>`;
+  }).join('') : `<div class="empty">아직 대화가 없어요. 먼저 인사해볼까요? 👋</div>`;
+  $('msgs').querySelectorAll('.react').forEach(el=>el.onclick=()=>{
+    const m=S.msgs[el.dataset.i]; m.r ||= {};
+    const cur = REACTS.find(e=>(m.r[e]||[]).includes(S.me));
+    const next = REACTS[cur===undefined?0:REACTS.indexOf(cur)+1];
+    REACTS.forEach(e=>m.r[e]=(m.r[e]||[]).filter(x=>x!==S.me));
+    if(next) m.r[next].push(S.me);
+    save(); renderChat();
+  });
+  // composer
+  const kid = !isParent();
+  $('txt').placeholder = S.room==='family' ? '가족 모두에게 말하기' : (kid ? '엄마 아빠에게만 말하기' : `${M(S.room.slice(4)).name}에게만 말하기`);
+  $('chips').innerHTML = CHIPS[kid?'kid':'parent'].map(([t,c])=>`<button class="${c||''}">${t}</button>`).join('');
+  $('chips').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    const urgent = b.classList.contains('urgent');
+    if(urgent){
+      // 긴급 메시지는 형제 방이 아닌, 아이와 부모만 있는 1:1 방으로 보내고 바로 알림
+      send({t:b.textContent, urgent:true}, 'kid:'+S.me);
+      S.room='kid:'+S.me; save(); renderChat();
+      toast('🔔 엄마, 아빠에게 바로 알림이 갔어요!');
+    } else send({t:b.textContent});
+  });
+  markRead(); save();
+  const main=$('main'); requestAnimationFrame(()=>main.scrollTop=main.scrollHeight);
+}
+function send(o, room=S.room){
+  S.msgs.push({room,u:S.me,ts:Date.now(),r:{},...o}); markRead(); save(); renderChat();
+}
+$('send').onclick=()=>{ const v=$('txt').value.trim(); if(!v) return; send({t:v}); $('txt').value=''; };
+$('txt').onkeydown=e=>{ if(e.key==='Enter'&&!e.isComposing) $('send').click(); };
+$('stickers').innerHTML = STICKERS.map(s=>`<button>${s}</button>`).join('');
+$('stickers').querySelectorAll('button').forEach(b=>b.onclick=()=>{ send({s:b.textContent}); $('stickers').classList.remove('on'); });
+$('stBtn').onclick=()=>$('stickers').classList.toggle('on');
+
+/* ---------- mood ---------- */
+let pick=null;
+function renderMood(){
+  const t = S.moodLog[today] || {};
+  const me = meM(), kid = !isParent();
+  pick = t[S.me]?.m || null;
+  $('moodTitle').textContent = kid ? `${me.name}야, 오늘 기분은 어때?` : `${me.name}의 오늘 기분`;
+  $('moodPrivacy').textContent = kid ? '🔒 이유는 엄마, 아빠만 볼 수 있어요. 슬프거나 화나면 엄마 아빠에게 살짝 알려줄게요.' : '🔒 적은 이유는 부모님끼리만 보여요.';
+  $('moodBtns').innerHTML = MOODS.map(([e,l])=>`<button class="${pick===e?'on':''}" data-e="${e}">${e}<small>${l}</small></button>`).join('');
+  $('moodBtns').querySelectorAll('button').forEach(b=>b.onclick=()=>{ pick=b.dataset.e; $('moodBtns').querySelectorAll('button').forEach(x=>x.classList.toggle('on',x===b)); });
+  // 오늘 가족 기분: 기분 이모지는 모두에게, 이유(메모)는 부모와 본인에게만
+  $('famMood').innerHTML = S.members.map(m=>{
+    const e=t[m.id]; const canSeeNote = isParent() || m.id===S.me;
+    return `<div><b>${e?.m||'❔'}</b>${esc(m.name)}${e?.n&&canSeeNote?`<div class="note">"${esc(e.n)}"</div>`:''}</div>`;
+  }).join('');
+  // 주간 기록: 부모는 모든 아이, 아이는 자기 것만
+  const showKids = kid ? [me] : kids();
+  $('weekTitle').textContent = kid ? '나의 이번 주 기분' : '아이들의 일주일 기분';
+  const days = [...Array(7)].map((_,i)=>daysAgo(6-i));
+  $('weeks').innerHTML = showKids.map(k=>`<div class="weekKid">
+      ${kid?'':`<div class="wk">${k.av} ${esc(k.name)}</div>`}
+      <div class="week">${days.map((d,i)=>{
+        const e = S.moodLog[dk(d)]?.[k.id];
+        return `<div class="${i===6?'today':''}"><b title="${e?.n&&!kid?esc(e.n):''}">${e?.m||'·'}</b>${i===6?'오늘':DOW[d.getDay()]}</div>`;
+      }).join('')}</div></div>`).join('') || '<div class="empty">아이를 먼저 추가해 주세요</div>';
+}
+$('moodSave').onclick=()=>{
+  if(!pick) return toast('기분을 하나 골라줘!');
+  const n=$('moodNote').value.trim();
+  (S.moodLog[today] ||= {})[S.me] = {m:pick,n};
+  if(!isParent() && (pick==='😢'||pick==='😠')){
+    // 형제가 보는 가족방이 아니라 1:1 방으로 전달
+    S.msgs.push({room:'kid:'+S.me,u:S.me,t:`오늘 기분: ${pick}${n?' — '+n:''}`,ts:Date.now(),r:{}});
+    toast('엄마 아빠가 마음을 알게 됐어요 🤗');
+  } else toast('기분을 알려줬어요!');
+  $('moodNote').value=''; save(); renderMood();
+};
+
+/* ---------- praise ---------- */
+function renderPraise(){
+  const parent = isParent();
+  if(!parent) S.praiseKid = S.me;
+  const k = M(S.praiseKid);
+  const ks = kids();
+  $('kidSel').style.display = parent && ks.length ? 'flex' : 'none';
+  $('kidSel').innerHTML = ks.map(x=>`<button class="pill ${x.id===S.praiseKid?'on':''}" data-k="${x.id}" style="${x.id===S.praiseKid?`border-color:${x.c}`:'border-color:var(--line)'}">${x.av} ${esc(x.name)} ⭐${(S.praise[x.id]||[]).length}</button>`).join('');
+  $('kidSel').querySelectorAll('button').forEach(b=>b.onclick=()=>{ S.praiseKid=b.dataset.k; save(); renderPraise(); });
+
+  if(!ks.length && parent){ $('boardTitle').textContent='아이를 먼저 추가해 주세요'; return; }
+  const list = S.praise[k.id] || [], n = list.length;
+  $('boardTitle').textContent = `⭐ ${k.name}의 칭찬 스티커`;
+  $('goalText').textContent = `🎯 ${GOAL_N}개 모으면: ${S.goals[k.id]||'목표를 정해주세요'} (${Math.min(n,GOAL_N)}/${GOAL_N})`;
+  $('board').innerHTML = Array.from({length:GOAL_N},(_,i)=>`<div class="slot ${i<n?'full':''}" style="${i<n?`border-color:${k.c}`:''}">${i<n?'⭐':''}</div>`).join('');
+  $('parentPraise').style.display = parent?'block':'none';
+  $('goalCard').style.display = parent?'block':'none';
+  $('kidLock').style.display = parent?'none':'block';
+  $('praiseAdd').textContent = `${k.name}에게 스티커 붙여주기`;
+  $('praiseAll').style.display = ks.length>1 ? 'block':'none';
+  $('praiseAll').textContent = `👫 아이들 모두에게 붙여주기 (함께 한 일)`;
+  $('rewardBtn').style.display = n>=GOAL_N ? 'block':'none';
+  $('goalInp').value = S.goals[k.id]||'';
+  $('praiseList').innerHTML = list.length ? list.slice().reverse().map(p=>`<li>⭐ <span>${esc(p.t)} <span class="sub">· ${esc(M(p.by).name)}</span></span></li>`).join('') : '<li class="sub">아직 칭찬 기록이 없어요</li>';
+}
+$('praiseAdd').onclick=()=>{
+  const v=$('praiseWhy').value.trim(); if(!v) return toast('칭찬 내용을 적어주세요');
+  const id=S.praiseKid;
+  (S.praise[id] ||= []).push({t:v,by:S.me});
+  S.msgs.push({room:'kid:'+id,u:S.me,t:`⭐ 칭찬 스티커! "${v}"`,ts:Date.now(),r:{}});
+  $('praiseWhy').value=''; save(); renderPraise();
+  toast(S.praise[id].length===GOAL_N?`🎉 ${M(id).name} 목표 달성! 약속을 지켜주세요`:'⭐ 스티커를 붙였어요');
+};
+$('praiseAll').onclick=()=>{
+  const v=$('praiseWhy').value.trim(); if(!v) return toast('칭찬 내용을 적어주세요');
+  const ks=kids();
+  ks.forEach(k=>(S.praise[k.id] ||= []).push({t:v,by:S.me}));
+  S.msgs.push({room:'family',u:S.me,t:`⭐ ${ks.map(k=>k.name).join(', ')} 모두 칭찬 스티커! "${v}"`,ts:Date.now(),r:{}});
+  $('praiseWhy').value=''; save(); renderPraise(); toast('👫 모두에게 스티커를 붙였어요');
+};
+$('rewardBtn').onclick=()=>{
+  const id=S.praiseKid;
+  S.msgs.push({room:'kid:'+id,u:S.me,t:`🎁 약속한 "${S.goals[id]}" 지킬게! 새 칭찬판 시작이야`,ts:Date.now(),r:{}});
+  S.praise[id]=[]; save(); renderPraise(); toast('🎁 새 칭찬판이 시작됐어요');
+};
+$('goalSave').onclick=()=>{
+  const v=$('goalInp').value.trim(); if(!v) return;
+  S.goals[S.praiseKid]=v; save(); renderPraise(); toast('🎯 목표를 저장했어요');
+};
+
+/* ---------- family ---------- */
+let avSel = null;
+function renderFamily(){
+  const parent = isParent();
+  $('members').innerHTML = S.members.map(m=>`<div class="member">
+      <div class="av" style="background:${m.c}33">${m.av}</div>
+      <div class="grow">${esc(m.name)}<span class="tag">${m.role==='kid'?'아이':'보호자'}</span>${m.id===S.me?'<span class="tag">나</span>':''}</div>
+      ${parent && m.role==='kid' && kids().length>1 ? `<button class="btn ghost small" data-del="${m.id}">내보내기</button>`:''}
+    </div>`).join('');
+  $('members').querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{
+    const id=b.dataset.del;
+    if(!confirm(`${M(id).name}을(를) 가족에서 내보낼까요? 칭찬판과 1:1 대화도 함께 사라져요.`)) return;
+    S.members=S.members.filter(x=>x.id!==id);
+    S.msgs=S.msgs.filter(x=>x.room!=='kid:'+id);
+    delete S.praise[id]; delete S.goals[id];
+    if(S.praiseKid===id) S.praiseKid=kids()[0]?.id;
+    if(S.room==='kid:'+id) S.room='family';
+    save(); renderAll();
+  });
+  $('addKidCard').style.display = parent?'block':'none';
+  $('resetCard').style.display = parent?'block':'none';
+  $('kidFamNote').style.display = parent?'none':'block';
+  const used = new Set(S.members.map(m=>m.av));
+  if(!avSel || used.has(avSel)) avSel = AVATARS.find(a=>!used.has(a)) || AVATARS[0];
+  $('avPick').innerHTML = AVATARS.map(a=>`<button class="${a===avSel?'on':''}">${a}</button>`).join('');
+  $('avPick').querySelectorAll('button').forEach(b=>b.onclick=()=>{ avSel=b.textContent; renderFamily(); });
+}
+$('addKid').onclick=()=>{
+  const name=$('kidName').value.trim(); if(!name) return toast('이름을 적어주세요');
+  if(S.members.some(m=>m.name===name)) return toast('같은 이름이 이미 있어요');
+  const id='k'+Date.now();
+  S.members.splice(kids().length,0,{id,name,av:avSel,c:PALETTE[kids().length%PALETTE.length],role:'kid'});
+  S.praise[id]=[]; S.goals[id]='목표를 정해주세요';
+  S.msgs.push({room:'family',u:S.me,t:`👋 ${name}이(가) 우리가족 톡톡에 들어왔어요! 환영해 🎉`,ts:Date.now(),r:{}});
+  $('kidName').value=''; avSel=null; save(); renderAll(); toast(`${name} 추가 완료!`);
+};
+$('reset').onclick=()=>{ if(confirm('데모 데이터를 초기화할까요?')){ S=defaultState(); save(); renderAll(); } };
+
+/* ---------- tabs ---------- */
+document.querySelectorAll('#nav button').forEach(b=>b.onclick=()=>{ S.tab=b.dataset.t; save(); renderAll(); });
+function renderTabs(){
+  document.querySelectorAll('#nav button').forEach(x=>x.classList.toggle('on',x.dataset.t===S.tab));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('on',p.id===S.tab));
+  $('compose').style.display = S.tab==='chat'?'block':'none';
+  const n = rooms().reduce((a,r)=>a+(S.tab==='chat'&&r===S.room?0:unread(r)),0);
+  const cb = document.querySelector('#nav [data-t=chat]');
+  cb.innerHTML = '💬 대화' + (n && S.tab!=='chat' ? ` <span style="color:var(--warn)">●</span>`:'');
+}
+function renderAll(){
+  if(!rooms().includes(S.room)) S.room='family';
+  renderWho(); renderTabs();
+  if(S.tab==='chat') renderChat();
+  renderMood(); renderPraise(); renderFamily();
+}
+renderAll();
+</script>
+</body>
+</html>
