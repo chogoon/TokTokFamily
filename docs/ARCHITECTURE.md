@@ -21,6 +21,14 @@ backend/
 supabase/                  # Supabase CLI 프로젝트 (migrations + RLS 정책)
 ```
 
+## 데이터베이스 스키마
+
+`supabase/migrations/`에 전체 스키마와 RLS 정책이 있다. 핵심 테이블: `families`, `members`(role: parent|kid), `devices`, `rooms`(type: family|kid), `messages`, `reactions`, `reads`, `praise_boards`, `praises`, `daily_questions`, `qr_login_tokens`(backend 전용, service-role만 접근).
+
+`moods`(이모지)와 `mood_notes`(기분 이유)는 별도 테이블이다. "이모지는 가족 전체 공개, 이유는 본인+보호자만"이라는 규칙이 컬럼 단위로는 RLS로 표현할 수 없어, 공개 데이터와 비공개 데이터를 테이블로 분리해 각각 행 단위 RLS를 건다.
+
+RLS 정책은 `members` 테이블을 재귀 참조하지 않도록 `current_member_id()`, `current_family_id()`, `is_parent()` 같은 `security definer` 헬퍼 함수를 통해 구현한다.
+
 ## 패턴
 
 화면은 어느 경로든 `services/`를 통해서만 접근한다.
