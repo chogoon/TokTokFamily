@@ -32,8 +32,10 @@ backend는 아래 세 가지 작업만 담당한다. 그 외 일상 데이터(�
 ## 명령어
 
 ```bash
-npm run dev --workspace=backend    # 개발 서버 (저장소 루트에서)
+npm run dev --workspace=backend    # 개발 서버 (저장소 루트에서). backend/.env 필요 (--env-file로 로드)
 npm run build --workspace=backend
-npm run test --workspace=backend   # 로컬 Supabase 필요
+npm run test --workspace=backend   # 로컬 Supabase 필요, .env 없어도 됨(test/supabaseTestEnv.ts가 기본값 주입)
 npm run lint --workspace=backend
 ```
+
+`npm run dev`/`npm start`는 Node 20.6+ 내장 `--env-file=.env`로 환경변수를 로드한다. `backend/.env`가 없으면 `SUPABASE_URL ... must be set` 에러로 즉시 크래시한다 — `.env.example`을 복사해 로컬 Supabase 값으로 채운다 (`run-dev-stack` 스킬이 이 과정을 안내한다).

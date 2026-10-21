@@ -43,10 +43,12 @@ Family TokTok은 세 부분으로 뜬다: 로컬 Supabase(Docker), `backend`(Exp
    `frontend/.env` 파일이 없으면 `EXPO_PUBLIC_SUPABASE_URL`/`EXPO_PUBLIC_SUPABASE_ANON_KEY`(Supabase 로컬 값)와 `EXPO_PUBLIC_BACKEND_URL=http://localhost:4000`을 `frontend/.env.example` 형식으로 채워 `frontend/.env`로 만든다.
 
    ```bash
-   cd frontend && npx expo start --web
+   npm run web --workspace=frontend
    ```
 
-   웹으로 먼저 띄워 빠르게 화면을 확인한다. iOS/Android 시뮬레이터 확인이 필요하면 사용자에게 명시적으로 요청받았을 때만 `--ios`/`--android`로 전환한다.
+   웹으로 먼저 띄워 빠르게 화면을 확인한다. `frontend/package.json`의 `web`/`start`/`ios`/`android` 스크립트는 모두 `EXPO_USE_METRO_WORKSPACE_ROOT=1`을 포함한다 — 이 환경변수 없이 `npx expo start`를 직접 실행하면 npm workspaces 호이스팅 때문에 번들 URL에 `/../`가 섞여 브라우저에서 404가 난다(알려진 이슈, `frontend/metro.config.js`의 주석 참고). iOS/Android 시뮬레이터 확인이 필요하면 사용자에게 명시적으로 요청받았을 때만 `npm run ios`/`npm run android`로 전환한다.
+
+   웹에서 backend를 호출하는 화면(가족 생성, 초대, QR 로그인)을 테스트할 때는 CORS가 걸리므로 backend가 `cors` 미들웨어로 응답하는지 확인한다(`backend/src/app.ts`) — 네이티브 앱 빌드에서는 이 제약이 없다.
 
 ## 정리
 

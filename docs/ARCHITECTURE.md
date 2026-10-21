@@ -10,6 +10,7 @@ frontend/
 │   ├── (auth)/            # 가족 생성, 초대, 아이 QR 로그인 (backend REST 경유)
 │   └── (tabs)/            # 대화 / 기분 / 칭찬 / 가족 탭 (Supabase 직접 구독)
 ├── components/            # 재사용 UI 컴포넌트 (버튼, 말풍선, 스티커 등)
+├── contexts/              # 인증 컨텍스트 등 앱 전역 상태 (Context API)
 ├── types/                 # TypeScript 타입 정의 (families, members, rooms, messages ...)
 ├── lib/                   # 유틸리티 + 헬퍼 (날짜 포맷, QR 토큰 파싱 등)
 └── services/              # Supabase 클라이언트+쿼리 래퍼, backend REST 호출 래퍼

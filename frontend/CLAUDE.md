@@ -11,7 +11,7 @@
 ## 디렉토리 구조
 
 - 화면/라우트는 `app/`에 Expo Router 파일 기반 라우팅으로 둔다. `app/(auth)/`는 가족 생성/초대/QR 로그인, `app/(tabs)/`는 대화/기분/칭찬/가족 탭.
-- 재사용 UI 컴포넌트는 `components/`, 타입은 `types/`, 날짜 포맷·QR 파싱 등 순수 유틸은 `lib/`.
+- 재사용 UI 컴포넌트는 `components/`, 타입은 `types/`, 날짜 포맷·QR 파싱 등 순수 유틸은 `lib/`, 인증 컨텍스트는 `contexts/`.
 - Supabase 직접 호출과 backend REST 호출은 모두 `services/`에 모은다. 화면 컴포넌트가 `services/`를 거치지 않고 `@supabase/supabase-js`나 `fetch`를 직접 호출하지 않는다.
 
 ## 패턴 (ADR-004 기준 — 두 가지 경로가 다르다)
