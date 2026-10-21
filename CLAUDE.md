@@ -32,9 +32,12 @@
 
 ```bash
 npm install                             # 루트에서 전체 workspace 설치
+npx supabase start                      # 로컬 Supabase 스택 기동 (backend 테스트 전 필수, Docker 필요)
 npm run dev --workspace=backend         # backend 개발 서버
 npx expo start                          # frontend 개발 서버 (frontend/ 안에서)
 npm run lint                            # 루트 — 두 workspace lint fan-out
 npm run build                           # 루트 — 두 workspace build fan-out
 npm run test                            # 루트 — 두 workspace test fan-out
 ```
+
+- CRITICAL: `backend`의 통합 테스트(`*.integration.test.ts`)는 로컬 Supabase(`npx supabase start`, Docker 필요)가 실행 중이어야 통과한다. `npm run test`를 실행하기 전에 `npx supabase status`로 떠 있는지 확인할 것. 꺼져 있으면 테스트가 실패하는 게 아니라 `beforeAll`에서 명시적으로 에러를 던진다(원인 파악용).
