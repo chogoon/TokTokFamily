@@ -1,7 +1,9 @@
 이 프로젝트의 변경 사항을 리뷰하라.
 
 먼저 다음 문서들을 읽어라:
-- `/CLAUDE.md`
+
+- `/CLAUDE.md` (공통 규칙)
+- 변경된 파일이 `frontend/` 또는 `backend/` 안에 있으면 해당 `frontend/CLAUDE.md` / `backend/CLAUDE.md` (workspace별 규칙)
 - `/docs/ARCHITECTURE.md`
 - `/docs/ADR.md`
 

@@ -179,6 +179,12 @@ class StepExecutor:
         claude_md = ROOT / "CLAUDE.md"
         if claude_md.exists():
             sections.append(f"## 프로젝트 규칙 (CLAUDE.md)\n\n{claude_md.read_text()}")
+        for workspace in ("frontend", "backend"):
+            nested_claude_md = ROOT / workspace / "CLAUDE.md"
+            if nested_claude_md.exists():
+                sections.append(
+                    f"## {workspace}/ 규칙 ({workspace}/CLAUDE.md)\n\n{nested_claude_md.read_text()}"
+                )
         docs_dir = ROOT / "docs"
         if docs_dir.is_dir():
             for doc in sorted(docs_dir.glob("*.md")):

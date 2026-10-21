@@ -6,7 +6,7 @@
 
 ### A. 탐색
 
-`/docs/` 하위 문서(PRD, ARCHITECTURE, ADR 등)를 읽고 프로젝트의 기획·아키텍처·설계 의도를 파악한다. 필요시 Explore 에이전트를 병렬로 사용한다.
+`/docs/` 하위 문서(PRD, ARCHITECTURE, ADR 등)를 읽고 프로젝트의 기획·아키텍처·설계 의도를 파악한다. step이 `frontend/` 또는 `backend/`만 다룬다면 해당 workspace의 `CLAUDE.md`도 반드시 읽는다 (루트 `CLAUDE.md`는 공통 규칙만 담고, workspace별 세부 규칙은 `frontend/CLAUDE.md`·`backend/CLAUDE.md`에 있다 — `execute.py`가 둘 다 가드레일로 주입한다). 필요시 Explore 에이전트를 병렬로 사용한다.
 
 ### B. 논의
 

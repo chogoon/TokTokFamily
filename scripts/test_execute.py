@@ -192,6 +192,27 @@ class TestLoadGuardrails:
             result = inst._load_guardrails()
         assert result == ""
 
+    def test_loads_nested_workspace_claude_md(self, executor, tmp_project):
+        (tmp_project / "frontend").mkdir()
+        (tmp_project / "frontend" / "CLAUDE.md").write_text("# Frontend rule\nuse services/")
+        (tmp_project / "backend").mkdir()
+        (tmp_project / "backend" / "CLAUDE.md").write_text("# Backend rule\nuse service-role carefully")
+
+        with patch.object(ex, "ROOT", tmp_project):
+            result = executor._load_guardrails()
+
+        assert "Frontend rule" in result
+        assert "use services/" in result
+        assert "Backend rule" in result
+        assert "use service-role carefully" in result
+
+    def test_no_nested_workspace_claude_md(self, executor, tmp_project):
+        with patch.object(ex, "ROOT", tmp_project):
+            result = executor._load_guardrails()
+
+        assert "frontend/ 규칙" not in result
+        assert "backend/ 규칙" not in result
+
 
 # ---------------------------------------------------------------------------
 # _build_step_context
