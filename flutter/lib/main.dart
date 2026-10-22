@@ -7,6 +7,8 @@ import 'screens/auth_gate.dart';
 import 'services/api_client.dart';
 import 'services/app_config.dart';
 import 'services/families_service.dart';
+import 'services/members_service.dart';
+import 'services/qr_auth_service.dart';
 import 'services/supabase_auth_backend.dart';
 import 'state/auth_controller.dart';
 import 'theme/app_theme.dart';
@@ -36,6 +38,8 @@ Future<void> main() async {
       providers: [
         Provider<ParentAuthService>.value(value: parentAuth),
         Provider<FamiliesService>.value(value: FamiliesService(api)),
+        Provider<QrAuthService>.value(value: QrAuthService(api)),
+        Provider<MembersService>.value(value: SupabaseMembersService(supabase)),
         ChangeNotifierProvider<AuthController>(
           create: (_) =>
               AuthController(SupabaseAuthBackend(supabase))..initialize(),

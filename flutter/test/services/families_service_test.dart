@@ -114,4 +114,60 @@ void main() {
           'http://localhost:4000/families/invites/redeem');
     });
   });
+  group('FamiliesService.createInvite', () {
+    test('POST /families/invites에 빈 바디 + Bearer 토큰을 보내고 code/expiresAt을 파싱한다',
+        () async {
+      final service = FamiliesService(clientReturning(
+          201, {'code': 'ABCD2345', 'expiresAt': '2026-10-22T03:10:00.000Z'}));
+
+      final invite = await service.createInvite();
+
+      expect(invite.code, 'ABCD2345');
+      expect(invite.expiresAt, DateTime.parse('2026-10-22T03:10:00.000Z'));
+      final req = requests.single;
+      expect(req.method, 'POST');
+      expect(req.url.toString(), 'http://localhost:4000/families/invites');
+      expect(req.headers['Authorization'], 'Bearer jwt-123');
+      expect(jsonDecode(req.body), <String, dynamic>{});
+    });
+
+    test('보호자가 아니면 403 ApiError', () async {
+      final service = FamiliesService(
+          clientReturning(403, {'error': 'only parents can create invites'}));
+
+      await expectLater(
+        service.createInvite(),
+        throwsA(isA<ApiError>().having((e) => e.status, 'status', 403)),
+      );
+    });
+  });
+
+  group('FamiliesService.addKid', () {
+    test('POST /families/kids에 name(trim)/avatar/color를 보내고 결과를 파싱한다', () async {
+      final service = FamiliesService(
+          clientReturning(201, {'memberId': 'k1', 'kidRoomId': 'r1'}));
+
+      final result =
+          await service.addKid(name: ' 서아 ', avatar: '🐰', color: '#FFB547');
+
+      expect(result.memberId, 'k1');
+      expect(result.kidRoomId, 'r1');
+      final req = requests.single;
+      expect(req.url.toString(), 'http://localhost:4000/families/kids');
+      expect(req.headers['Authorization'], 'Bearer jwt-123');
+      // 아이 개인정보는 이름/아바타/색 외에 보내지 않는다
+      expect(jsonDecode(req.body),
+          {'name': '서아', 'avatar': '🐰', 'color': '#FFB547'});
+    });
+
+    test('잘못된 입력이면 400 ApiError', () async {
+      final service = FamiliesService(
+          clientReturning(400, {'error': 'invalid request'}));
+
+      await expectLater(
+        service.addKid(name: '서아', avatar: '🐰', color: '#FFB547'),
+        throwsA(isA<ApiError>().having((e) => e.status, 'status', 400)),
+      );
+    });
+  });
 }

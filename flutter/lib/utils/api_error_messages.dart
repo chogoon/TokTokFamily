@@ -40,3 +40,43 @@ String redeemInviteErrorMessage(Object error) {
       return '가족에 참여하지 못했어요';
   }
 }
+
+String createInviteErrorMessage(Object error) {
+  if (error is! ApiError) return '초대 코드를 만들지 못했어요';
+  switch (error.status) {
+    case 401:
+      return _sessionExpired;
+    case 403:
+      return '보호자만 초대 코드를 만들 수 있어요';
+    default:
+      return '초대 코드를 만들지 못했어요';
+  }
+}
+
+String addKidErrorMessage(Object error) {
+  if (error is! ApiError) return '아이를 추가하지 못했어요';
+  switch (error.status) {
+    case 401:
+      return _sessionExpired;
+    case 403:
+      return '보호자만 아이를 추가할 수 있어요';
+    case 400:
+      return '이름(8자 이하)과 캐릭터를 다시 확인해주세요';
+    default:
+      return '아이를 추가하지 못했어요';
+  }
+}
+
+String issueQrErrorMessage(Object error) {
+  if (error is! ApiError) return 'QR 코드를 만들지 못했어요';
+  switch (error.status) {
+    case 401:
+      return _sessionExpired;
+    case 403:
+      return '보호자만 QR 코드를 만들 수 있어요';
+    case 404:
+      return '우리 가족 아이를 찾을 수 없어요';
+    default:
+      return 'QR 코드를 만들지 못했어요';
+  }
+}
