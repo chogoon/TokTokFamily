@@ -35,3 +35,16 @@ export function redeemInvite(
     parentName,
   });
 }
+
+export interface AddKidResult {
+  memberId: string;
+  kidRoomId: string;
+}
+
+export function addKid(
+  name: string,
+  avatar: string,
+  color: string
+): Promise<AddKidResult> {
+  return backendPost<AddKidResult>("/families/kids", { name, avatar, color });
+}

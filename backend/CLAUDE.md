@@ -12,7 +12,7 @@
 
 backend는 아래 세 가지 작업만 담당한다. 그 외 일상 데이터(대화/기분/칭찬 등)는 frontend가 Supabase를 직접 호출하므로 backend에 새 라우트를 추가하지 않는다.
 
-1. 가족 생성 + 최초 보호자 멤버십 부트스트랩, 초대 코드 발급/redeem
+1. 가족 생성 + 최초 보호자 멤버십 부트스트랩, 초대 코드 발급/redeem, 아이 추가(1:1 방+칭찬판 동반 생성)
 2. 아이 QR 로그인 토큰 발급/교환
 3. 푸시 알림 디스패치 (Supabase Database Webhook 수신 → Expo Push API)
 

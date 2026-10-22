@@ -2,6 +2,7 @@ import { Router } from "express";
 import { z } from "zod";
 import { createSupabaseAdminClient } from "../lib/supabaseAdmin";
 import { generateInviteCode, inviteExpiresAt } from "../lib/inviteCode";
+import { KID_AVATARS, KID_COLORS } from "../lib/kidPalette";
 import { findMemberByAuthUserId } from "../lib/members";
 import { verifyJwt, AuthedRequest } from "../middleware/verifyJwt";
 
@@ -116,6 +117,53 @@ router.post("/invites/redeem", verifyJwt, async (req: AuthedRequest, res) => {
 
   const row = Array.isArray(data) ? data[0] : data;
   res.status(200).json({ familyId: row.family_id, memberId: row.member_id });
+});
+
+const addKidSchema = z.object({
+  name: z.string().min(1).max(8),
+  avatar: z.enum(KID_AVATARS),
+  color: z.enum(KID_COLORS),
+});
+
+// POST /families/kids — 아이 추가 (호출자가 보호자여야 함). 1:1 방 + 빈 칭찬판이 함께 생긴다.
+router.post("/kids", verifyJwt, async (req: AuthedRequest, res) => {
+  const parsed = addKidSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "invalid request", details: parsed.error.flatten() });
+    return;
+  }
+
+  const admin = createSupabaseAdminClient();
+  const member = await findMemberByAuthUserId(admin, req.authUserId!);
+
+  if (!member) {
+    res.status(404).json({ error: "member not found" });
+    return;
+  }
+
+  const { data, error } = await admin.rpc("add_kid_member", {
+    p_family_id: member.family_id,
+    p_requester_auth_user_id: req.authUserId,
+    p_name: parsed.data.name,
+    p_avatar: parsed.data.avatar,
+    p_color: parsed.data.color,
+  });
+
+  if (error) {
+    if (error.message.includes("ONLY_PARENT_CAN_ADD_KID")) {
+      res.status(403).json({ error: "only parents can add kids" });
+      return;
+    }
+    if (error.message.includes("NOT_A_FAMILY_MEMBER")) {
+      res.status(404).json({ error: "member not found" });
+      return;
+    }
+    res.status(500).json({ error: "failed to add kid" });
+    return;
+  }
+
+  const row = Array.isArray(data) ? data[0] : data;
+  res.status(201).json({ memberId: row.member_id, kidRoomId: row.kid_room_id });
 });
 
 export default router;

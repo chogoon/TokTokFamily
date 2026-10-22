@@ -30,12 +30,12 @@
 
 **결정**: ADR-002의 "Supabase만을 백엔드로 사용한다"는 결정을 수정한다. Express + TypeScript 기반 `backend/` 서버를 추가하고, 다음 세 가지 작업만 이 서버를 통해 처리한다.
 
-1. 가족 생성 및 최초 보호자 멤버십 부트스트랩, 초대 코드 발급/redeem
+1. 가족 생성 및 최초 보호자 멤버십 부트스트랩, 초대 코드 발급/redeem, 아이 추가(1:1 방+칭찬판 동반 생성)
 2. 아이 QR 로그인 토큰 발급/교환 (디바이스 연결)
 3. 푸시 알림 디스패치 (Supabase Database Webhook 수신 → Expo Push API 호출)
 
 그 외 일상적인 데이터 읽기/쓰기(대화, 기분, 칭찬, 반응)는 ADR-002 원래 설계대로 frontend가 Supabase를 직접 호출하며 RLS로 보호된다.
 
-**이유**: 가족 생성/초대/QR 로그인은 "멤버십 행이 아직 없는 상태에서 자기 자신을 만드는" 부트스트랩 문제로 RLS만으로 안전하게 표현하기 어렵다. QR 로그인은 Supabase Auth Admin API(Service Role 전용)가 필요해 클라이언트에서 수행할 수 없다. 푸시 디스패치는 DB 변경을 감지해 외부 API(Expo)를 호출하는 상시 서버 로직이 필요하다. 반면 대화/기분/칭찬은 Supabase Realtime+RLS로 이미 충분히 안전하므로 전부 backend로 proxy하면 불필요한 지연과 복잡도만 늘어난다.
+**이유**: 가족 생성/초대/아이 추가/QR 로그인은 "멤버십 행이 아직 없는 상태에서 자기 자신을 만드는" 부트스트랩 문제거나, 여러 테이블(member+room+praise_board)을 한 트랜잭션으로 원자적으로 묶어야 하는 작업이라 RLS insert 정책만으로 안전하게 표현하기 어렵다. QR 로그인은 Supabase Auth Admin API(Service Role 전용)가 필요해 클라이언트에서 수행할 수 없다. 푸시 디스패치는 DB 변경을 감지해 외부 API(Expo)를 호출하는 상시 서버 로직이 필요하다. 반면 대화/기분/칭찬은 Supabase Realtime+RLS로 이미 충분히 안전하므로 전부 backend로 proxy하면 불필요한 지연과 복잡도만 늘어난다.
 
 **트레이드오프**: 운영해야 할 서버가 하나 늘어난다(배포/모니터링 책임 증가). Service Role 키 사용 범위를 위 3가지로 한정하고, backend는 가능하면 사용자 JWT를 Supabase에 그대로 전달(passthrough)해 RLS가 계속 적용되게 한다. RLS는 모든 경로에서 defense-in-depth로 유지한다.
