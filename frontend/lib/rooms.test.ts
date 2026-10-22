@@ -2,6 +2,7 @@ import {
   buildRoomName,
   buildRoomSummaries,
   isRoomUnread,
+  nextReactionEmoji,
   pickLastMessagePerRoom,
 } from "./rooms";
 import { Member } from "../types/member";
@@ -114,5 +115,26 @@ describe("buildRoomSummaries", () => {
         hasUnread: false,
       },
     ]);
+  });
+});
+
+describe("nextReactionEmoji", () => {
+  const REACTS = ["❤️", "👍", "😂"];
+
+  it("반응이 없던 상태에서 누르면 첫 번째 이모지가 된다", () => {
+    expect(nextReactionEmoji(REACTS, undefined)).toBe("❤️");
+  });
+
+  it("현재 반응의 다음 이모지로 순환한다", () => {
+    expect(nextReactionEmoji(REACTS, "❤️")).toBe("👍");
+    expect(nextReactionEmoji(REACTS, "👍")).toBe("😂");
+  });
+
+  it("마지막 이모지에서 한 번 더 누르면 반응 없음(undefined)으로 돌아간다", () => {
+    expect(nextReactionEmoji(REACTS, "😂")).toBeUndefined();
+  });
+
+  it("목록에 없는 이모지가 현재값으로 들어오면 처음부터 순환한다", () => {
+    expect(nextReactionEmoji(REACTS, "🙂")).toBe("❤️");
   });
 });

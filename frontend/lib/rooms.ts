@@ -54,6 +54,25 @@ export function pickLastMessagePerRoom(
   return result;
 }
 
+/** 메시지에 달 수 있는 반응 이모지 목록 (family-sns.html 프로토타입의 REACTS). */
+export const REACTION_EMOJIS = ["❤️", "👍", "😂"] as const;
+
+/**
+ * 메시지 반응 순환 로직 (family-sns.html 프로토타입의 REACTS 순환과 동일).
+ * 내 반응은 최대 1개다. 현재 반응(`currentEmoji`)이 없으면 첫 이모지로,
+ * 있으면 목록의 다음 이모지로 바뀌고, 마지막 이모지에서 한 번 더 누르면
+ * 반응 없음(undefined)으로 돌아간다. 호출 측(services/rooms.ts)은 이 값에
+ * 따라 기존 반응 delete + (undefined가 아니면) 새 반응 insert만 수행한다.
+ */
+export function nextReactionEmoji(
+  emojis: readonly string[],
+  currentEmoji: string | undefined
+): string | undefined {
+  const currentIndex = currentEmoji === undefined ? -1 : emojis.indexOf(currentEmoji);
+  const nextIndex = currentIndex + 1;
+  return emojis[nextIndex];
+}
+
 /** rooms/members/마지막 메시지/읽음 상태를 합쳐 화면에 쓸 RoomSummary 목록을 만든다. */
 export function buildRoomSummaries(
   rooms: Room[],
