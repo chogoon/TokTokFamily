@@ -14,7 +14,9 @@ export function createApp() {
   app.use(express.json());
   app.use("/health", healthRouter);
   app.use("/families", familiesRouter);
-  app.use("/auth/qr", qrAuthRouter);
+  // qrAuthRouter가 /qr/*(QR 스캔)과 /code/*(숫자 코드 입력) 양쪽을 다루므로
+  // "/auth"에 마운트한다 — 각 라우트가 전체 경로(/qr/issue 등)를 직접 정의한다.
+  app.use("/auth", qrAuthRouter);
   app.use("/webhooks/push", pushWebhookRouter);
   return app;
 }

@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { colors } from "../../lib/theme";
 import { formatCountdown, remainingSeconds } from "../../lib/qrCountdown";
+import { formatShortCode } from "../../lib/shortCode";
 import { ApiError } from "../../services/api";
 import { issueQrToken } from "../../services/qrAuth";
 
@@ -19,6 +20,7 @@ export default function QrIssueScreen() {
   const router = useRouter();
 
   const [qrDataUrl, setQrDataUrl] = useState<string | null>(null);
+  const [shortCode, setShortCode] = useState<string | null>(null);
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -28,6 +30,7 @@ export default function QrIssueScreen() {
     setError(null);
     setLoading(true);
     setQrDataUrl(null);
+    setShortCode(null);
     try {
       const result = await issueQrToken(kidMemberId);
       expiresAtRef.current = result.expiresAt;
@@ -37,6 +40,7 @@ export default function QrIssueScreen() {
         margin: 2,
       });
       setQrDataUrl(dataUrl);
+      setShortCode(result.shortCode);
     } catch (e) {
       setError(
         e instanceof ApiError ? e.message : "QR 코드를 만들지 못했어요"
@@ -96,6 +100,13 @@ export default function QrIssueScreen() {
           />
         ) : null}
       </View>
+
+      {!loading && !error && shortCode && !expired && (
+        <View style={styles.codeBox}>
+          <Text style={styles.codeLabel}>또는 이 번호를 아이에게 알려주세요</Text>
+          <Text style={styles.codeValue}>{formatShortCode(shortCode)}</Text>
+        </View>
+      )}
 
       {!loading && !error && qrDataUrl && (
         <Text style={expired ? styles.expiredTimer : styles.timer}>
@@ -162,6 +173,25 @@ const styles = StyleSheet.create({
   qrImage: {
     width: 280,
     height: 280,
+  },
+  codeBox: {
+    backgroundColor: colors.bannerBackground,
+    borderRadius: 18,
+    padding: 16,
+    alignItems: "center",
+    marginTop: 16,
+  },
+  codeLabel: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: colors.bannerText,
+    marginBottom: 6,
+  },
+  codeValue: {
+    fontSize: 32,
+    fontWeight: "800",
+    letterSpacing: 2,
+    color: colors.textPrimary,
   },
   error: {
     color: colors.danger,

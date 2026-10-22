@@ -1,20 +1,25 @@
-import { createClient } from "@supabase/supabase-js";
+import rateLimit from "express-rate-limit";
 import { Router } from "express";
 import { z } from "zod";
-import { ensureKidAuthUser } from "../lib/kidAuthUser";
 import { findMemberByAuthUserId } from "../lib/members";
-import { generateQrToken, qrTokenExpiresAt } from "../lib/qrToken";
+import { generateQrToken, generateShortCode, qrTokenExpiresAt } from "../lib/qrToken";
+import { redeemQrLoginToken } from "../lib/qrLoginSession";
 import { createSupabaseAdminClient } from "../lib/supabaseAdmin";
 import { AuthedRequest, verifyJwt } from "../middleware/verifyJwt";
 
 const router = Router();
 
+const MAX_SHORT_CODE_ATTEMPTS = 5;
+
+// Postgres unique_violation
+const UNIQUE_VIOLATION = "23505";
+
 const issueSchema = z.object({
   kidMemberId: z.string().uuid(),
 });
 
-// POST /auth/qr/issue — 부모가 특정 아이 계정으로 로그인할 QR용 토큰 발급
-router.post("/issue", verifyJwt, async (req: AuthedRequest, res) => {
+// POST /auth/qr/issue — 부모가 특정 아이 계정으로 로그인할 QR용 토큰 + 숫자 코드를 함께 발급
+router.post("/qr/issue", verifyJwt, async (req: AuthedRequest, res) => {
   const parsed = issueSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "invalid request", details: parsed.error.flatten() });
@@ -43,20 +48,40 @@ router.post("/issue", verifyJwt, async (req: AuthedRequest, res) => {
   const token = generateQrToken();
   const expiresAt = qrTokenExpiresAt();
 
-  const { error: insertError } = await admin.from("qr_login_tokens").insert({
-    family_id: parent.family_id,
-    kid_member_id: kid.id,
-    issued_by: parent.id,
-    token,
-    expires_at: expiresAt.toISOString(),
-  });
+  // 숫자 코드는 활성(미사용) 상태에서 유일해야 한다(부분 unique 인덱스).
+  // 충돌 시(다른 발급분과 코드가 겹침) 몇 차례 재생성해 재시도한다.
+  let shortCode = "";
+  let insertError: { code?: string; message: string } | null = null;
+
+  for (let attempt = 0; attempt < MAX_SHORT_CODE_ATTEMPTS; attempt++) {
+    shortCode = generateShortCode();
+
+    const { error } = await admin.from("qr_login_tokens").insert({
+      family_id: parent.family_id,
+      kid_member_id: kid.id,
+      issued_by: parent.id,
+      token,
+      short_code: shortCode,
+      expires_at: expiresAt.toISOString(),
+    });
+
+    if (!error) {
+      insertError = null;
+      break;
+    }
+
+    insertError = error;
+    if (error.code !== UNIQUE_VIOLATION) {
+      break;
+    }
+  }
 
   if (insertError) {
     res.status(500).json({ error: "failed to issue token" });
     return;
   }
 
-  res.status(201).json({ token, expiresAt: expiresAt.toISOString() });
+  res.status(201).json({ token, shortCode, expiresAt: expiresAt.toISOString() });
 });
 
 const redeemSchema = z.object({
@@ -64,7 +89,7 @@ const redeemSchema = z.object({
 });
 
 // POST /auth/qr/redeem — 아이 기기가 QR을 스캔해 받은 토큰을 세션으로 교환
-router.post("/redeem", async (req, res) => {
+router.post("/qr/redeem", async (req, res) => {
   const parsed = redeemSchema.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: "invalid request", details: parsed.error.flatten() });
@@ -72,77 +97,34 @@ router.post("/redeem", async (req, res) => {
   }
 
   const admin = createSupabaseAdminClient();
+  const result = await redeemQrLoginToken(admin, "token", parsed.data.token);
+  res.status(result.status).json(result.body);
+});
 
-  const { data: qrToken, error: tokenError } = await admin
-    .from("qr_login_tokens")
-    .select("id, kid_member_id, expires_at, used_at")
-    .eq("token", parsed.data.token)
-    .maybeSingle();
+// 숫자 6자리는 100만 조합뿐이라 QR 토큰(24바이트 랜덤)보다 훨씬 추측하기
+// 쉽다 — IP당 분당 요청 수를 엄격히 제한해 brute-force를 어렵게 만든다.
+const codeRedeemRateLimit = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
-  if (tokenError || !qrToken) {
-    res.status(404).json({ error: "token not found" });
+const codeRedeemSchema = z.object({
+  shortCode: z.string().length(6).regex(/^\d{6}$/),
+});
+
+// POST /auth/code/redeem — 아이 기기가 QR 대신 숫자 코드를 직접 입력해 세션 교환
+router.post("/code/redeem", codeRedeemRateLimit, async (req, res) => {
+  const parsed = codeRedeemSchema.safeParse(req.body);
+  if (!parsed.success) {
+    res.status(400).json({ error: "invalid request", details: parsed.error.flatten() });
     return;
   }
 
-  if (qrToken.used_at) {
-    res.status(409).json({ error: "token already used" });
-    return;
-  }
-
-  if (new Date(qrToken.expires_at) < new Date()) {
-    res.status(410).json({ error: "token expired" });
-    return;
-  }
-
-  const { data: kid, error: kidError } = await admin
-    .from("members")
-    .select("id, auth_user_id")
-    .eq("id", qrToken.kid_member_id)
-    .maybeSingle();
-
-  if (kidError || !kid) {
-    res.status(404).json({ error: "kid member not found" });
-    return;
-  }
-
-  const authUserId = await ensureKidAuthUser(admin, kid.id, kid.auth_user_id);
-
-  const { data: linkData, error: linkError } = await admin.auth.admin.generateLink({
-    type: "magiclink",
-    email: `kid-${kid.id}@internal.familytoktok.local`,
-  });
-
-  if (linkError || !linkData) {
-    res.status(500).json({ error: "failed to generate session" });
-    return;
-  }
-
-  const anon = createClient(
-    process.env.SUPABASE_URL!,
-    process.env.SUPABASE_ANON_KEY!,
-    { auth: { autoRefreshToken: false, persistSession: false } }
-  );
-
-  const { data: verifyData, error: verifyError } = await anon.auth.verifyOtp({
-    type: "magiclink",
-    token_hash: linkData.properties.hashed_token,
-  });
-
-  if (verifyError || !verifyData.session) {
-    res.status(500).json({ error: "failed to exchange session" });
-    return;
-  }
-
-  await admin
-    .from("qr_login_tokens")
-    .update({ used_at: new Date().toISOString() })
-    .eq("id", qrToken.id);
-
-  res.status(200).json({
-    accessToken: verifyData.session.access_token,
-    refreshToken: verifyData.session.refresh_token,
-    authUserId,
-  });
+  const admin = createSupabaseAdminClient();
+  const result = await redeemQrLoginToken(admin, "short_code", parsed.data.shortCode);
+  res.status(result.status).json(result.body);
 });
 
 export default router;

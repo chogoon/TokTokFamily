@@ -81,6 +81,14 @@ export default function ScanQrScreen() {
           <Pressable style={styles.button} onPress={Linking.openSettings}>
             <Text style={styles.buttonText}>설정에서 카메라 켜기</Text>
           </Pressable>
+          <Pressable
+            style={styles.linkButton}
+            onPress={() => router.replace("/(auth)/enter-code")}
+          >
+            <Text style={styles.linkButtonText}>
+              QR이 안 보이나요? 번호로 입력하기
+            </Text>
+          </Pressable>
         </View>
       );
     }
@@ -94,6 +102,14 @@ export default function ScanQrScreen() {
         </Text>
         <Pressable style={styles.button} onPress={requestPermission}>
           <Text style={styles.buttonText}>카메라 켜기</Text>
+        </Pressable>
+        <Pressable
+          style={styles.linkButton}
+          onPress={() => router.replace("/(auth)/enter-code")}
+        >
+          <Text style={styles.linkButtonText}>
+            QR이 안 보이나요? 번호로 입력하기
+          </Text>
         </Pressable>
       </View>
     );
@@ -112,6 +128,14 @@ export default function ScanQrScreen() {
           <Text style={styles.hint}>
             부모님 화면에 보이는 QR을 카메라에 비춰주세요
           </Text>
+          <Pressable
+            style={styles.linkButton}
+            onPress={() => router.replace("/(auth)/enter-code")}
+          >
+            <Text style={styles.linkButtonText}>
+              QR이 안 보이나요? 번호로 입력하기
+            </Text>
+          </Pressable>
         </>
       )}
 
@@ -150,6 +174,15 @@ const styles = StyleSheet.create({
     textAlign: "center",
     backgroundColor: colors.bannerBackground,
     padding: 16,
+  },
+  linkButton: {
+    alignItems: "center",
+    paddingVertical: 14,
+  },
+  linkButtonText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: colors.kid,
   },
   overlay: {
     flex: 1,
