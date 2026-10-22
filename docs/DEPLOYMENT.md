@@ -45,7 +45,7 @@ DB 비밀번호를 물어보면 1-1에서 설정한 값을 입력한다. `supaba
 npx supabase db push
 ```
 
-`supabase/migrations/`의 아래 6개 파일이 **파일명(=타임스탬프) 순서대로** 적용된다:
+`supabase/migrations/`의 아래 7개 파일이 **파일명(=타임스탬프) 순서대로** 적용된다:
 
 1. `20261021140000_init.sql` — families/members/rooms/messages 등 전체 스키마 + RLS
 2. `20261021150000_invites_and_bootstrap.sql` — 가족 생성/초대 RPC
@@ -53,6 +53,11 @@ npx supabase db push
 4. `20261022030000_enable_messages_realtime.sql` — messages를 Realtime publication에 등록
 5. `20261022040000_enable_reactions_realtime.sql` — reactions를 Realtime publication에 등록
 6. `20261022050000_add_qr_short_code.sql` — 숫자 코드 로그인용 컬럼
+7. `20261022060000_add_push_webhook_triggers.sql` — **로컬 전용** push webhook 트리거.
+   `supabase_functions` 스키마가 없는(아직 Database Webhooks를 켜지 않은) 운영 프로젝트에서는
+   에러 없이 `RAISE NOTICE`만 남기고 트리거 생성을 건너뛴다 — `migration list`에는 적용됨으로
+   표시되지만 실제 트리거는 생성되지 않는다. 운영 push 디스패치는 이 마이그레이션이 아니라
+   바로 아래 2번 섹션의 대시보드 수동 설정으로 동작한다.
 
 > **참고 (drift 점검 결과)**: 4번, 5번 마이그레이션은 과거 로컬 환경에서 `alter publication
 > supabase_realtime add table ...`을 수동으로 먼저 실행해둔 뒤 마이그레이션 파일로 기록한 적이
@@ -71,11 +76,17 @@ npx supabase db push
 npx supabase migration list --linked
 ```
 
-로컬 이력과 원격 이력이 모두 6개로 일치해야 한다.
+로컬 이력과 원격 이력이 모두 7개로 일치해야 한다(7번 `20261022060000`도 "적용됨"으로 표시되지만,
+위에서 설명했듯 실제 트리거는 생성되지 않는다 — 정상이다).
 
 ---
 
 ## 2. Supabase Database Webhook 생성 (메시지/칭찬 → 푸시 디스패치)
+
+> 1번 섹션에서 적용한 `20261022060000_add_push_webhook_triggers.sql`은 **로컬 전용**이라 운영
+> 프로젝트에는 트리거가 생기지 않는다. 운영에서 메시지/칭찬 insert 시 푸시가 나가게 하려면
+> 아래 2-2 절차로 대시보드에서 Database Webhook을 직접 만들어야 한다 — 이 섹션을 건너뛰면
+> 운영 backend가 떠 있어도 `/webhooks/push`가 전혀 호출되지 않는다.
 
 backend의 `POST /webhooks/push`(`backend/src/routes/pushWebhook.ts`)가 받는 요청 형식:
 
