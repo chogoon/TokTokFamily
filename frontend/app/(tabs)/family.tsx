@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  FlatList,
   Pressable,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -12,7 +12,7 @@ import { useAuth } from "../../contexts/AuthContext";
 import { KID_AVATARS, KID_COLORS } from "../../lib/kidPalette";
 import { colors } from "../../lib/theme";
 import { ApiError } from "../../services/api";
-import { addKid } from "../../services/families";
+import { addKid, createInvite, CreateInviteResult } from "../../services/families";
 import { fetchFamilyMembers } from "../../services/family";
 import { Member } from "../../types/member";
 
@@ -29,6 +29,10 @@ export default function FamilyScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const [invite, setInvite] = useState<CreateInviteResult | null>(null);
+  const [inviteLoading, setInviteLoading] = useState(false);
+  const [inviteError, setInviteError] = useState<string | null>(null);
+
   const loadMembers = useCallback(async () => {
     setLoadingMembers(true);
     try {
@@ -42,6 +46,19 @@ export default function FamilyScreen() {
   useEffect(() => {
     loadMembers();
   }, [loadMembers]);
+
+  async function handleCreateInvite() {
+    setInviteError(null);
+    setInviteLoading(true);
+    try {
+      const result = await createInvite();
+      setInvite(result);
+    } catch (e) {
+      setInviteError(e instanceof ApiError ? e.message : "초대 코드를 만들지 못했어요");
+    } finally {
+      setInviteLoading(false);
+    }
+  }
 
   async function handleAddKid() {
     if (!name.trim()) {
@@ -64,37 +81,63 @@ export default function FamilyScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       <Text style={styles.title}>👪 우리 가족</Text>
 
-      <FlatList
-        data={members}
-        keyExtractor={(item) => item.id}
-        style={styles.memberList}
-        renderItem={({ item }) => (
-          <View style={styles.memberRow}>
-            <View
-              style={[
-                styles.memberAvatar,
-                { backgroundColor: item.color ?? colors.border },
-              ]}
-            >
-              <Text style={styles.memberAvatarText}>
-                {item.avatar ?? (item.role === "parent" ? "👤" : "🙂")}
+      {loadingMembers ? (
+        <ActivityIndicator color={colors.accent} style={{ marginTop: 16 }} />
+      ) : (
+        <View>
+          {members.map((item) => (
+            <View key={item.id} style={styles.memberRow}>
+              <View
+                style={[
+                  styles.memberAvatar,
+                  { backgroundColor: item.color ?? colors.border },
+                ]}
+              >
+                <Text style={styles.memberAvatarText}>
+                  {item.avatar ?? (item.role === "parent" ? "👤" : "🙂")}
+                </Text>
+              </View>
+              <Text style={styles.memberName}>{item.name}</Text>
+              {item.role === "parent" && (
+                <Text style={styles.memberBadge}>보호자</Text>
+              )}
+            </View>
+          ))}
+        </View>
+      )}
+
+      {me?.role === "parent" && (
+        <View style={styles.addCard}>
+          <Text style={styles.addTitle}>🔗 보호자 초대하기</Text>
+
+          {invite ? (
+            <View>
+              <Text style={styles.inviteCode}>{invite.code}</Text>
+              <Text style={styles.hint}>
+                이 코드를 다른 보호자님께 알려주세요. 10분 안에 입력해야 해요.
               </Text>
             </View>
-            <Text style={styles.memberName}>{item.name}</Text>
-            {item.role === "parent" && (
-              <Text style={styles.memberBadge}>보호자</Text>
-            )}
-          </View>
-        )}
-        ListEmptyComponent={
-          loadingMembers ? (
-            <ActivityIndicator color={colors.accent} style={{ marginTop: 16 }} />
-          ) : null
-        }
-      />
+          ) : (
+            <>
+              {inviteError && <Text style={styles.error}>{inviteError}</Text>}
+              <Pressable
+                style={[styles.button, inviteLoading && styles.buttonDisabled]}
+                onPress={handleCreateInvite}
+                disabled={inviteLoading}
+              >
+                {inviteLoading ? (
+                  <ActivityIndicator color="#FFFFFF" />
+                ) : (
+                  <Text style={styles.buttonText}>초대 코드 만들기</Text>
+                )}
+              </Pressable>
+            </>
+          )}
+        </View>
+      )}
 
       {me?.role === "parent" && (
         <View style={styles.addCard}>
@@ -143,7 +186,7 @@ export default function FamilyScreen() {
           </Text>
         </View>
       )}
-    </View>
+    </ScrollView>
   );
 }
 
@@ -151,6 +194,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.pageBackground,
+  },
+  content: {
     padding: 16,
   },
   title: {
@@ -160,9 +205,16 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 12,
   },
-  memberList: {
-    flexGrow: 0,
-    maxHeight: 200,
+  inviteCode: {
+    fontSize: 28,
+    fontWeight: "800",
+    letterSpacing: 4,
+    color: colors.textPrimary,
+    textAlign: "center",
+    backgroundColor: colors.bannerBackground,
+    borderRadius: 12,
+    paddingVertical: 14,
+    marginBottom: 10,
   },
   memberRow: {
     flexDirection: "row",

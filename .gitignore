@@ -10,3 +10,4 @@ supabase/.branches/
 supabase/.temp/
 __pycache__/
 *.pyc
+.tmp-reports/

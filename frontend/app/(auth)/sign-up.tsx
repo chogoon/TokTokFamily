@@ -29,7 +29,7 @@ export default function SignUpScreen() {
       return;
     }
 
-    router.replace("/(auth)/create-family");
+    router.replace("/(auth)/join-choice");
   }
 
   return (
