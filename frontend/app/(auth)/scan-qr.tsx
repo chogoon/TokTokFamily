@@ -3,12 +3,14 @@ import { useRouter } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Linking,
   Pressable,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 import { useAuth } from "../../contexts/AuthContext";
+import { describeCameraPermissionState } from "../../lib/cameraPermission";
 import { colors } from "../../lib/theme";
 import { ApiError } from "../../services/api";
 import { redeemQrToken } from "../../services/qrAuth";
@@ -66,6 +68,23 @@ export default function ScanQrScreen() {
   }
 
   if (!permission.granted) {
+    const permissionState = describeCameraPermissionState(permission);
+
+    if (permissionState === "blocked") {
+      return (
+        <View style={styles.container}>
+          <Text style={styles.emoji}>📷</Text>
+          <Text style={styles.title}>카메라 권한이 꺼져 있어요</Text>
+          <Text style={styles.subtitle}>
+            설정에서 카메라를 켜주세요
+          </Text>
+          <Pressable style={styles.button} onPress={Linking.openSettings}>
+            <Text style={styles.buttonText}>설정에서 카메라 켜기</Text>
+          </Pressable>
+        </View>
+      );
+    }
+
     return (
       <View style={styles.container}>
         <Text style={styles.emoji}>📷</Text>
