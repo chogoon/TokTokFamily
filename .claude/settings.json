@@ -17,7 +17,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "(set -a; [ -f .claude/.env ] && source .claude/.env; set +a; payload=$(cat); desc=$(echo \"$payload\" | jq -r '.agent_id as $id | (.background_tasks[] | select(.id==$id) | .description) // \"서브에이전트 작업\"'); atype=$(echo \"$payload\" | jq -r '.agent_type // \"\"'); if [ -n \"$TELEGRAM_BOT_TOKEN\" ] && [ -n \"$TELEGRAM_CHAT_ID\" ]; then curl -s -X POST \"https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage\" -d \"chat_id=${TELEGRAM_CHAT_ID}\" --data-urlencode \"text=🔔 서브에이전트 완료: ${desc} (${atype})\" >/dev/null 2>&1; fi) &"
+            "command": "payload=$(cat); (set -a; [ -f .claude/.env ] && source .claude/.env; set +a; desc=$(echo \"$payload\" | jq -r '.agent_id as $id | (.background_tasks[] | select(.id==$id) | .description) // \"서브에이전트 작업\"'); atype=$(echo \"$payload\" | jq -r '.agent_type // \"\"'); if [ -n \"$TELEGRAM_BOT_TOKEN\" ] && [ -n \"$TELEGRAM_CHAT_ID\" ]; then curl -s -X POST \"https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage\" -d \"chat_id=${TELEGRAM_CHAT_ID}\" --data-urlencode \"text=🔔 서브에이전트 완료\n이름: ${desc}\n유형: ${atype}\" >/dev/null 2>&1; fi) &"
           }
         ]
       }
