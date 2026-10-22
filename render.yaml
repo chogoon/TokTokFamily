@@ -1,0 +1,32 @@
+# Render Blueprint — backend/Dockerfile 기반 배포.
+#
+# 저장소 루트에 있어야 Render가 "New > Blueprint" 메뉴에서 자동으로 찾는다.
+# dockerContext를 "."(루트)로 지정한 이유는 backend/Dockerfile.ts가
+# 모노레포 루트의 package.json(workspaces 선언)과 package-lock.json을
+# 전제로 한다(backend/Dockerfile) — backend/ 디렉토리만 컨텍스트로 주면 workspace
+# 의존성을 설치할 수 없다 (backend/Dockerfile 상단 주석 참고).
+#
+# 이 파일은 선택사항이다: Render 대시보드에서 수동으로 "Web Service" +
+# "Docker" 런타임을 선택해 같은 설정을 입력해도 동일하게 동작한다
+# (docs/DEPLOYMENT.md에 수동 절차도 함께 안내되어 있다).
+services:
+  - type: web
+    name: family-toktok-backend
+    runtime: docker
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: .
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_ANON_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: PUSH_WEBHOOK_SECRET
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+      - key: PORT
+        value: 4000
