@@ -1,3 +1,4 @@
+import { useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -21,6 +22,7 @@ function nextColor(existingKidCount: number): string {
 }
 
 export default function FamilyScreen() {
+  const router = useRouter();
   const { member: me } = useAuth();
   const [members, setMembers] = useState<Member[]>([]);
   const [loadingMembers, setLoadingMembers] = useState(true);
@@ -89,20 +91,30 @@ export default function FamilyScreen() {
       ) : (
         <View>
           {members.map((item) => (
-            <View key={item.id} style={styles.memberRow}>
-              <View
-                style={[
-                  styles.memberAvatar,
-                  { backgroundColor: item.color ?? colors.border },
-                ]}
-              >
-                <Text style={styles.memberAvatarText}>
-                  {item.avatar ?? (item.role === "parent" ? "👤" : "🙂")}
-                </Text>
+            <View key={item.id} style={styles.memberCard}>
+              <View style={styles.memberRow}>
+                <View
+                  style={[
+                    styles.memberAvatar,
+                    { backgroundColor: item.color ?? colors.border },
+                  ]}
+                >
+                  <Text style={styles.memberAvatarText}>
+                    {item.avatar ?? (item.role === "parent" ? "👤" : "🙂")}
+                  </Text>
+                </View>
+                <Text style={styles.memberName}>{item.name}</Text>
+                {item.role === "parent" && (
+                  <Text style={styles.memberBadge}>보호자</Text>
+                )}
               </View>
-              <Text style={styles.memberName}>{item.name}</Text>
-              {item.role === "parent" && (
-                <Text style={styles.memberBadge}>보호자</Text>
+              {me?.role === "parent" && item.role === "kid" && (
+                <Pressable
+                  style={styles.qrButton}
+                  onPress={() => router.push(`/qr-issue/${item.id}`)}
+                >
+                  <Text style={styles.qrButtonText}>📱 QR로 로그인 연결하기</Text>
+                </Pressable>
               )}
             </View>
           ))}
@@ -216,13 +228,27 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     marginBottom: 10,
   },
-  memberRow: {
-    flexDirection: "row",
-    alignItems: "center",
+  memberCard: {
     backgroundColor: colors.card,
     borderRadius: 18,
     padding: 12,
     marginBottom: 8,
+  },
+  memberRow: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  qrButton: {
+    backgroundColor: colors.bannerBackground,
+    borderRadius: 999,
+    paddingVertical: 10,
+    alignItems: "center",
+    marginTop: 10,
+  },
+  qrButtonText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: colors.bannerText,
   },
   memberAvatar: {
     width: 34,

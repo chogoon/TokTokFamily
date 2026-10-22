@@ -68,6 +68,15 @@ export default function SignUpScreen() {
           <Text style={styles.buttonText}>가입하기</Text>
         )}
       </Pressable>
+
+      <Pressable
+        style={styles.kidLink}
+        onPress={() => router.push("/(auth)/scan-qr")}
+      >
+        <Text style={styles.kidLinkText}>
+          🙂 아이인가요? QR로 로그인하기
+        </Text>
+      </Pressable>
     </View>
   );
 }
@@ -120,5 +129,15 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 15,
     fontWeight: "700",
+  },
+  kidLink: {
+    alignItems: "center",
+    paddingVertical: 14,
+    marginTop: 8,
+  },
+  kidLinkText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: colors.kid,
   },
 });
