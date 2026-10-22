@@ -26,6 +26,20 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
+        name="mood"
+        options={{
+          title: "기분",
+          tabBarIcon: ({ focused }) => <TabIcon emoji="🌈" focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
+        name="praise"
+        options={{
+          title: "칭찬",
+          tabBarIcon: ({ focused }) => <TabIcon emoji="⭐" focused={focused} />,
+        }}
+      />
+      <Tabs.Screen
         name="family"
         options={{
           title: "가족",
