@@ -70,6 +70,15 @@ export default function SignUpScreen() {
       </Pressable>
 
       <Pressable
+        style={styles.secondaryLink}
+        onPress={() => router.push("/(auth)/sign-in")}
+      >
+        <Text style={styles.secondaryLinkText}>
+          이미 계정이 있으신가요? 로그인
+        </Text>
+      </Pressable>
+
+      <Pressable
         style={styles.kidLink}
         onPress={() => router.push("/(auth)/scan-qr")}
       >
@@ -130,10 +139,19 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "700",
   },
-  kidLink: {
+  secondaryLink: {
     alignItems: "center",
     paddingVertical: 14,
     marginTop: 8,
+  },
+  secondaryLinkText: {
+    fontSize: 14,
+    fontWeight: "700",
+    color: colors.textSecondary,
+  },
+  kidLink: {
+    alignItems: "center",
+    paddingVertical: 14,
   },
   kidLinkText: {
     fontSize: 14,
