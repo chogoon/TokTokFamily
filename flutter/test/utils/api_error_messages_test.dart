@@ -72,4 +72,42 @@ void main() {
       expect(issueQrErrorMessage(Exception('x')), 'QR 코드를 만들지 못했어요');
     });
   });
+
+  group('redeemQrErrorMessage', () {
+    test('404/409/410을 각각 구분해 안내한다', () {
+      expect(redeemQrErrorMessage(const ApiError(404, 'token not found')),
+          'QR을 찾을 수 없어요');
+      expect(redeemQrErrorMessage(const ApiError(409, 'token already used')),
+          '이미 사용한 QR이에요');
+      expect(redeemQrErrorMessage(const ApiError(410, 'token expired')),
+          'QR 시간이 지났어요');
+    });
+
+    test('그 밖의 오류는 기본 문구', () {
+      expect(redeemQrErrorMessage(const ApiError(500, 'x')), '로그인하지 못했어요');
+      expect(redeemQrErrorMessage(Exception('network')), '로그인하지 못했어요');
+    });
+  });
+
+  group('redeemShortCodeErrorMessage', () {
+    test('404/409/410/429를 각각 구분해 안내한다', () {
+      expect(redeemShortCodeErrorMessage(const ApiError(404, 'token not found')),
+          '번호를 찾을 수 없어요');
+      expect(
+          redeemShortCodeErrorMessage(const ApiError(409, 'token already used')),
+          '이미 사용한 번호예요');
+      expect(redeemShortCodeErrorMessage(const ApiError(410, 'token expired')),
+          '번호 시간이 지났어요');
+      expect(
+          redeemShortCodeErrorMessage(
+              const ApiError(429, 'request failed (429)')),
+          '너무 많이 시도했어요, 잠시 후 다시 해주세요');
+    });
+
+    test('그 밖의 오류는 기본 문구', () {
+      expect(redeemShortCodeErrorMessage(const ApiError(500, 'x')),
+          '로그인하지 못했어요');
+      expect(redeemShortCodeErrorMessage(Exception('network')), '로그인하지 못했어요');
+    });
+  });
 }

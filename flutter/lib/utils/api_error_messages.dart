@@ -80,3 +80,36 @@ String issueQrErrorMessage(Object error) {
       return 'QR 코드를 만들지 못했어요';
   }
 }
+
+// 아이 기기 로그인(redeem). 상태코드 의미는 backend/src/lib/qrLoginSession.ts 참조.
+const _kidLoginFailed = '로그인하지 못했어요';
+
+String redeemQrErrorMessage(Object error) {
+  if (error is! ApiError) return _kidLoginFailed;
+  switch (error.status) {
+    case 404:
+      return 'QR을 찾을 수 없어요';
+    case 409:
+      return '이미 사용한 QR이에요';
+    case 410:
+      return 'QR 시간이 지났어요';
+    default:
+      return _kidLoginFailed;
+  }
+}
+
+String redeemShortCodeErrorMessage(Object error) {
+  if (error is! ApiError) return _kidLoginFailed;
+  switch (error.status) {
+    case 404:
+      return '번호를 찾을 수 없어요';
+    case 409:
+      return '이미 사용한 번호예요';
+    case 410:
+      return '번호 시간이 지났어요';
+    case 429:
+      return '너무 많이 시도했어요, 잠시 후 다시 해주세요';
+    default:
+      return _kidLoginFailed;
+  }
+}

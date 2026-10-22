@@ -1,5 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- 아이 기기 QR 로그인 (mobile_scanner). 카메라 없는 기기도 설치 가능하도록 required=false -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-feature android:name="android.hardware.camera" android:required="false"/>
     <application
         android:label="family_toktok"
         android:name="${applicationName}"

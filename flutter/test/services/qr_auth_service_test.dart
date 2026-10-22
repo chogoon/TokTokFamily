@@ -66,4 +66,88 @@ void main() {
       );
     });
   });
+
+  group('QrAuthService redeem (아이 기기)', () {
+    late List<(String, String)> applied;
+
+    QrAuthService serviceReturning(int status, Object body) {
+      applied = [];
+      return QrAuthService(
+        clientReturning(status, body),
+        applySession: (access, refresh) async => applied.add((access, refresh)),
+      );
+    }
+
+    const ok = {
+      'accessToken': 'access-abc',
+      'refreshToken': 'refresh-xyz',
+      'authUserId': 'kid-auth-uuid',
+    };
+
+    test('redeemQrToken: Bearer 없이 POST /auth/qr/redeem 후 세션을 적용한다',
+        () async {
+      final service = serviceReturning(200, ok);
+
+      await service.redeemQrToken('scanned-token');
+
+      final req = requests.single;
+      expect(req.url.toString(), 'http://localhost:4000/auth/qr/redeem');
+      expect(req.headers.containsKey('Authorization'), isFalse);
+      expect(jsonDecode(req.body), {'token': 'scanned-token'});
+      expect(applied, [('access-abc', 'refresh-xyz')]);
+    });
+
+    test('redeemShortCode: Bearer 없이 POST /auth/code/redeem 후 세션을 적용한다',
+        () async {
+      final service = serviceReturning(200, ok);
+
+      await service.redeemShortCode('482913');
+
+      final req = requests.single;
+      expect(req.url.toString(), 'http://localhost:4000/auth/code/redeem');
+      expect(req.headers.containsKey('Authorization'), isFalse);
+      expect(jsonDecode(req.body), {'shortCode': '482913'});
+      expect(applied, [('access-abc', 'refresh-xyz')]);
+    });
+
+    for (final status in [404, 409, 410]) {
+      test('redeemQrToken: $status면 ApiError를 던지고 세션을 건드리지 않는다',
+          () async {
+        final service = serviceReturning(status, {'error': 'x'});
+
+        await expectLater(
+          service.redeemQrToken('t'),
+          throwsA(isA<ApiError>().having((e) => e.status, 'status', status)),
+        );
+        expect(applied, isEmpty);
+      });
+    }
+
+    test('redeemShortCode: 429(본문이 JSON이 아니어도)면 ApiError(429)', () async {
+      requests = [];
+      applied = [];
+      final service = QrAuthService(
+        ApiClient(
+          baseUrl: 'http://localhost:4000',
+          httpClient: MockClient((r) async =>
+              http.Response('Too many requests, please try again later.', 429)),
+          accessTokenProvider: () async => null,
+        ),
+        applySession: (a, r) async => applied.add((a, r)),
+      );
+
+      await expectLater(
+        service.redeemShortCode('482913'),
+        throwsA(isA<ApiError>().having((e) => e.status, 'status', 429)),
+      );
+      expect(applied, isEmpty);
+    });
+
+    test('응답에 토큰이 없으면 세션 적용 없이 실패한다', () async {
+      final service = serviceReturning(200, {'authUserId': 'x'});
+
+      await expectLater(service.redeemQrToken('t'), throwsA(isA<ApiError>()));
+      expect(applied, isEmpty);
+    });
+  });
 }

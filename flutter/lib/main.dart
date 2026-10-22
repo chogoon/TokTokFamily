@@ -20,7 +20,8 @@ Future<void> main() async {
   // 세션은 supabase_flutter가 SharedPreferences에 저장하고 자동 갱신한다 (RN의 AsyncStorage 설정에 대응).
   await Supabase.initialize(
     url: config.supabaseUrl,
-    // supabase_flutter 2.8.x(Flutter 3.16 호환)에는 publishableKey가 없어 anonKey를 유지한다.
+    // pubspec.yaml은 하한만 ^2.8.4로 고정하지만, 설치된 2.18.x에서도 publishableKey
+    // 대신 anonKey를 그대로 쓴다(deprecated 경고만 뜨고 동작은 동일).
     // ignore: deprecated_member_use
     anonKey: config.supabaseAnonKey,
   );
@@ -38,7 +39,16 @@ Future<void> main() async {
       providers: [
         Provider<ParentAuthService>.value(value: parentAuth),
         Provider<FamiliesService>.value(value: FamiliesService(api)),
-        Provider<QrAuthService>.value(value: QrAuthService(api)),
+        Provider<QrAuthService>.value(
+          value: QrAuthService(
+            api,
+            // 아이 기기 redeem 응답 세션 적용. onAuthStateChange → AuthController가 members를 다시 읽는다.
+            applySession: (accessToken, refreshToken) async {
+              await supabase.auth
+                  .setSession(refreshToken, accessToken: accessToken);
+            },
+          ),
+        ),
         Provider<MembersService>.value(value: SupabaseMembersService(supabase)),
         ChangeNotifierProvider<AuthController>(
           create: (_) =>

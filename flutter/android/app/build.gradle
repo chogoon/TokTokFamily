@@ -26,7 +26,8 @@ if (flutterVersionName == null) {
 
 android {
     namespace "com.familytoktok.family_toktok"
-    compileSdkVersion flutter.compileSdkVersion
+    // permission_handler_android 14.x가 compileSdk 37을 요구한다 (targetSdk는 Flutter 기본값 유지)
+    compileSdkVersion 37
     ndkVersion flutter.ndkVersion
 
     compileOptions {

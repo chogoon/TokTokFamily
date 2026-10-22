@@ -7,6 +7,7 @@ import '../utils/validators.dart';
 import '../widgets/app_logo.dart';
 import '../widgets/form_screen_scaffold.dart';
 import '../widgets/primary_button.dart';
+import 'kid_scan_qr_screen.dart';
 
 /// 보호자 계정 만들기/로그인 (Supabase Auth 이메일+비밀번호).
 /// RN `app/(auth)/sign-up.tsx`와 같은 순서: 먼저 Supabase Auth 계정 → 그 JWT로 backend `POST /families`.
@@ -110,6 +111,19 @@ class _ParentAccountScreenState extends State<ParentAccountScreen> {
                       _error = null;
                     }),
             child: Text(_isSignIn ? '처음이신가요? 계정 만들기' : '이미 계정이 있나요? 로그인'),
+          ),
+        ),
+        Align(
+          alignment: Alignment.centerLeft,
+          child: TextButton(
+            key: const Key('kid-qr-login-link'),
+            onPressed: _loading
+                ? null
+                : () => Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                          builder: (_) => const KidScanQrScreen()),
+                    ),
+            child: const Text('🙂 아이인가요? QR로 로그인하기'),
           ),
         ),
       ],
