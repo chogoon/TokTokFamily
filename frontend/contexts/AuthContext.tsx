@@ -7,6 +7,9 @@ import {
   useEffect,
   useState,
 } from "react";
+import { Platform } from "react-native";
+import { getPlatform, registerForPushNotificationsAsync } from "../lib/pushNotifications";
+import { registerDevice } from "../services/devices";
 import { fetchCurrentMember } from "../services/members";
 import { supabase } from "../services/supabase";
 import { Member } from "../types/member";
@@ -28,6 +31,20 @@ export function AuthProvider({ children }: PropsWithChildren) {
   const refreshMember = useCallback(async () => {
     const current = await fetchCurrentMember();
     setMember(current);
+
+    // 푸시 알림 등록은 선택 기능이다 — 권한 거부/실패가 로그인 흐름을 막지 않도록
+    // 반드시 soft-fail 처리한다(throw 금지).
+    if (current) {
+      try {
+        const token = await registerForPushNotificationsAsync();
+        const platform = getPlatform(Platform.OS);
+        if (token && platform) {
+          await registerDevice(token, platform);
+        }
+      } catch {
+        // 알림 등록 실패는 조용히 무시한다.
+      }
+    }
   }, []);
 
   useEffect(() => {
