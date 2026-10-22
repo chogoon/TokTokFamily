@@ -18,6 +18,14 @@
           {
             "type": "command",
             "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -qE 'rm\\s+-rf|git\\s+push\\s+--force|git\\s+reset\\s+--hard|DROP\\s+TABLE'; then echo 'BLOCKED: 위험한 명령어가 감지되었습니다.' >&2; exit 1; fi"
+          },
+          {
+            "type": "command",
+            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -qE 'git[[:space:]]+push([[:space:]]+[^|;&]+)?[[:space:]](origin[[:space:]]+)?(main|master)([[:space:]]|$)'; then echo 'BLOCKED: main/master로 직접 push는 금지됩니다. feature 브랜치로 push 후 PR을 생성하세요 (git-ops 에이전트 / commit-and-push 스킬 사용).' >&2; exit 1; fi"
+          },
+          {
+            "type": "command",
+            "command": "if echo \"$CLAUDE_TOOL_INPUT\" | grep -qE 'git[[:space:]]+commit'; then staged=$(git diff --cached --name-only 2>/dev/null); if echo \"$staged\" | grep -qiE '(^|/)\\.env($|\\.[a-zA-Z]+$)|service[_-]?role|credentials\\.json|\\.pem$|\\.key$'; then echo 'BLOCKED: 커밋 대상에 민감 파일(.env, 자격 증명, 키 파일 등)로 보이는 파일이 포함되어 있습니다. git reset으로 제외한 뒤 다시 시도하세요.' >&2; exit 1; fi; fi"
           }
         ]
       }
