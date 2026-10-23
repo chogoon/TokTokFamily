@@ -1,0 +1,24 @@
+{
+  "expo": {
+    "name": "Family TokTok",
+    "slug": "family-toktok",
+    "scheme": "familytoktok",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {},
+    "plugins": [
+      "expo-router",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "QR 코드를 스캔해 아이 기기를 가족 계정에 연결하기 위해 카메라 접근이 필요해요."
+        }
+      ],
+      "expo-notifications"
+    ]
+  }
+}

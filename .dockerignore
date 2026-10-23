@@ -1,0 +1,42 @@
+# backend/Dockerfile을 저장소 루트에서(`docker build -f backend/Dockerfile .`)
+# 빌드할 때 쓰는 .dockerignore. 모노레포(npm workspaces)라 루트가 빌드
+# 컨텍스트이므로, backend 빌드에 필요 없는 디렉토리를 여기서 제외해야
+# 컨텍스트 전송 크기가 커지지 않고 frontend/flutter 변경이 backend 이미지
+# 캐시를 무효화하지 않는다.
+
+# 다른 workspace / 프로젝트 — backend 이미지에는 불필요
+frontend/
+flutter/
+
+# 의존성 (Dockerfile 안에서 npm ci로 새로 설치)
+node_modules/
+backend/node_modules/
+frontend/node_modules/
+
+# 빌드 산출물 (Dockerfile 안에서 새로 빌드)
+dist/
+backend/dist/
+frontend/dist/
+
+# 비밀값 — 이미지에 절대 포함하지 않음(런타임에 플랫폼이 환경변수로 주입)
+.env
+.env.local
+backend/.env
+backend/.env.local
+
+# VCS / 로컬 전용
+.git/
+.github/
+.claude/
+.tmp-reports/
+*.log
+.DS_Store
+
+# Supabase 로컬 상태(이미지와 무관)
+supabase/.branches/
+supabase/.temp/
+
+# 문서/기획 (이미지와 무관, 빌드 컨텍스트만 키움)
+docs/
+*.md
+family-sns.html

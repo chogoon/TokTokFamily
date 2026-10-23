@@ -1,0 +1,11 @@
+{
+  "extends": "expo",
+  "ignorePatterns": ["/dist/*"],
+  "overrides": [
+    {
+      "files": ["metro.config.js", "babel.config.js"],
+      "env": { "node": true },
+      "parserOptions": { "sourceType": "script" }
+    }
+  ]
+}

@@ -147,3 +147,16 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Family TokTok 프로젝트별 추가 항목
+dist/
+build/
+.expo/
+.env.local
+.DS_Store
+supabase/.branches/
+supabase/.temp/
+__pycache__/
+*.pyc
+.tmp-reports/
+.vscode/
