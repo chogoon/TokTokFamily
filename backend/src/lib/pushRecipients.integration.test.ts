@@ -26,8 +26,18 @@ async function createFamilyWithParentAndKid() {
     .single();
 
   await admin.from("devices").insert([
-    { member_id: parentMember!.id, push_token: "ExponentPushToken[parent-token]", platform: "ios" },
-    { member_id: kidMember!.id, push_token: "ExponentPushToken[kid-token]", platform: "android" },
+    {
+      member_id: parentMember!.id,
+      push_token: "ExponentPushToken[parent-token]",
+      platform: "ios",
+      provider: "expo",
+    },
+    {
+      member_id: kidMember!.id,
+      push_token: "ExponentPushToken[kid-token]",
+      platform: "android",
+      provider: "expo",
+    },
   ]);
 
   return { familyId: family!.id, parentMemberId: parentMember!.id as string, kidMemberId: kidMember!.id as string };

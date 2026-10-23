@@ -2,6 +2,7 @@ import { SupabaseClient } from "@supabase/supabase-js";
 
 export interface PushTarget {
   pushToken: string;
+  provider: "expo" | "fcm";
 }
 
 async function deviceTokensForMembers(
@@ -14,14 +15,17 @@ async function deviceTokensForMembers(
 
   const { data, error } = await admin
     .from("devices")
-    .select("push_token")
+    .select("push_token, provider")
     .in("member_id", memberIds);
 
   if (error) {
     throw error;
   }
 
-  return (data ?? []).map((d) => ({ pushToken: d.push_token }));
+  return (data ?? []).map((d) => ({
+    pushToken: d.push_token,
+    provider: d.provider,
+  }));
 }
 
 /** 새 메시지의 수신자(같은 방의 발신자 제외 구성원) 기기 토큰을 가져온다. */
