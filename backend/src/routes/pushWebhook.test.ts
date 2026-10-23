@@ -4,12 +4,14 @@ import { createApp } from "../app";
 import "../test/supabaseTestEnv";
 
 vi.mock("../lib/pushRecipients", () => ({
-  recipientsForMessage: vi.fn().mockResolvedValue([{ pushToken: "ExponentPushToken[fake]" }]),
+  recipientsForMessage: vi
+    .fn()
+    .mockResolvedValue([{ pushToken: "ExponentPushToken[fake]", provider: "expo" }]),
   recipientsForPraise: vi.fn().mockResolvedValue([]),
 }));
 
-vi.mock("../lib/expoPush", () => ({
-  sendExpoPushNotifications: vi.fn().mockResolvedValue(undefined),
+vi.mock("../lib/pushDispatch", () => ({
+  dispatchPushNotifications: vi.fn().mockResolvedValue(undefined),
 }));
 
 const app = createApp();
