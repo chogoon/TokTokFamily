@@ -36,10 +36,17 @@ Flutter는 Expo 생태계가 아니므로 Expo Push 토큰 대신 **FCM registra
   푸시 등록만 조용히 건너뛴다. Android의 `com.google.gms.google-services` 플러그인은
   `android/app/google-services.json`이 있을 때만 적용된다(`android/app/build.gradle`).
 
-### 실제 Firebase 프로젝트 연동 (수동 — Firebase 콘솔에서 별도 진행 필요)
+### 실제 Firebase 프로젝트 연동
 
-1. Firebase 콘솔에서 프로젝트 생성 후 Android 앱(`com.familytoktok.family_toktok`)과 iOS 앱(Runner의 Bundle ID) 등록.
-2. `google-services.json` → `flutter/android/app/`, `GoogleService-Info.plist` → Xcode로 `ios/Runner`에 추가(타깃 포함).
-3. iOS: Apple Developer에서 APNs 인증 키(.p8)를 발급해 Firebase 콘솔 > Cloud Messaging에 업로드하고,
+Firebase 프로젝트(`toktokfamily-c38b9`)에 Android 앱(`com.toktokfamily.toktok_family`)과 iOS 앱
+(`com.toktokfamily.toktokFamily`)이 이미 `flutterfire configure`로 등록되어 있다
+(`android/app/google-services.json`, `ios/Runner/GoogleService-Info.plist`, `lib/firebase_options.dart`,
+`firebase.json`, `.firebaserc` 전부 커밋됨). 남은 건 아래 수동 단계뿐이다:
+
+1. iOS: Apple Developer에서 APNs 인증 키(.p8)를 발급해 Firebase 콘솔 > Cloud Messaging에 업로드하고,
    Xcode에서 Push Notifications / Background Modes(Remote notifications) capability 추가.
-4. backend: Firebase 콘솔 > 서비스 계정에서 비공개 키(JSON)를 받아 `FIREBASE_SERVICE_ACCOUNT_KEY` 환경변수로 설정.
+2. backend: Firebase 콘솔 > 프로젝트 설정 > 서비스 계정에서 비공개 키(JSON)를 받아
+   `FIREBASE_SERVICE_ACCOUNT_KEY` 환경변수로 설정.
+3. 설정 파일을 다시 받아야 할 때(앱 재등록 등)는 `flutterfire configure --project=toktokfamily-c38b9
+   --platforms=android,ios --android-package-name=com.toktokfamily.toktok_family
+   --ios-bundle-id=com.toktokfamily.toktokFamily`로 재실행한다.

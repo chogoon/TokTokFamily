@@ -1,0 +1,30 @@
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "toktokfamily-c38b9",
+          "appId": "1:178822939348:android:51d220f44e3c9ffff87141",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "toktokfamily-c38b9",
+          "appId": "1:178822939348:ios:728de03fdbb54bb9f87141",
+          "uploadDebugSymbols": false,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "toktokfamily-c38b9",
+          "configurations": {
+            "android": "1:178822939348:android:51d220f44e3c9ffff87141",
+            "ios": "1:178822939348:ios:728de03fdbb54bb9f87141"
+          }
+        }
+      }
+    }
+  }
+}

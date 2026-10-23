@@ -1,4 +1,4 @@
-package com.familytoktok.family_toktok
+package com.toktokfamily.toktok_family
 
 import io.flutter.embedding.android.FlutterActivity
 

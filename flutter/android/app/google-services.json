@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "178822939348",
+    "project_id": "toktokfamily-c38b9",
+    "storage_bucket": "toktokfamily-c38b9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:178822939348:android:51d220f44e3c9ffff87141",
+        "android_client_info": {
+          "package_name": "com.toktokfamily.toktok_family"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAR0G2QeYUrYOQWUsR72SVDJRWLaWEmRDc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

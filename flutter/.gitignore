@@ -46,3 +46,6 @@ app.*.map.json
 .env
 .env.*
 !.env.example
+
+# firebase CLI 로컬 캐시 (호스팅 배포 등) — 설정 자체(firebase.json)와는 무관
+.firebase/
