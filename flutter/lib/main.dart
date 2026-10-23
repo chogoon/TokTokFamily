@@ -8,6 +8,8 @@ import 'services/api_client.dart';
 import 'services/app_config.dart';
 import 'services/families_service.dart';
 import 'services/members_service.dart';
+import 'services/moods_service.dart';
+import 'services/praises_service.dart';
 import 'services/qr_auth_service.dart';
 import 'services/rooms_service.dart';
 import 'services/supabase_auth_backend.dart';
@@ -60,6 +62,21 @@ Future<void> main() async {
           value: SupabaseRoomsService(
             supabase,
             members: membersService,
+            currentMember: () async => authController.member,
+          ),
+        ),
+        // 칭찬판도 Supabase 직접 호출 (ADR-004). 접근 범위는 RLS(praise_boards/praises)가 강제한다.
+        Provider<PraisesService>.value(
+          value: SupabasePraisesService(
+            supabase,
+            members: membersService,
+            currentMember: () async => authController.member,
+          ),
+        ),
+        // 기분도 Supabase 직접 호출 (ADR-004). 이유(note) 공개 범위는 RLS(mood_notes_select)가 강제한다.
+        Provider<MoodsService>.value(
+          value: SupabaseMoodsService(
+            supabase,
             currentMember: () async => authController.member,
           ),
         ),
