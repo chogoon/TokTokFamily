@@ -6,6 +6,15 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
+// FCM 푸시 토큰 등록용. 실제 Firebase 프로젝트 연동(google-services.json 배치)은 Firebase
+// 콘솔에서 별도로 진행해야 한다. 파일이 없으면 플러그인을 적용하지 않아 빌드는 그대로 성공하고,
+// 앱은 Firebase.initializeApp() 실패를 감지해 푸시 등록만 조용히 건너뛴다.
+if (file("google-services.json").exists()) {
+    apply plugin: "com.google.gms.google-services"
+} else {
+    logger.lifecycle("[family_toktok] android/app/google-services.json 없음 — FCM 비활성 상태로 빌드합니다.")
+}
+
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file('local.properties')
 if (localPropertiesFile.exists()) {

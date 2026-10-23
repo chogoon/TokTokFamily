@@ -32,9 +32,14 @@ enum AuthStatus {
 
 /// 로그인한 구성원(role, family_id)을 앱 전역에 제공한다. RN `contexts/AuthContext.tsx`에 대응.
 class AuthController extends ChangeNotifier {
-  AuthController(this._backend);
+  AuthController(this._backend, {this.onMemberReady});
 
   final AuthBackend _backend;
+
+  /// 구성원 조회 성공(로그인 완료) 시 호출된다 — 푸시 토큰 등록 연결 지점.
+  /// RN `AuthContext.refreshMember` 안의 registerForPushNotificationsAsync 호출에 대응.
+  /// 권한 다이얼로그 대기 등으로 오래 걸릴 수 있어 기다리지 않고, 실패도 삼킨다(soft-fail).
+  final Future<void> Function(Member member)? onMemberReady;
   StreamSubscription<bool>? _subscription;
 
   AuthStatus _status = AuthStatus.loading;
@@ -66,10 +71,12 @@ class AuthController extends ChangeNotifier {
     try {
       final member = await _backend.fetchCurrentMember();
       _member = member;
-      _familyName =
-          member == null ? null : await _backend.fetchFamilyName(member.familyId);
+      _familyName = member == null
+          ? null
+          : await _backend.fetchFamilyName(member.familyId);
       _lastError = null;
       _status = member == null ? AuthStatus.needsFamily : AuthStatus.ready;
+      if (member != null) _notifyMemberReady(member);
     } catch (e) {
       _lastError = e;
       _member = null;
@@ -80,6 +87,18 @@ class AuthController extends ChangeNotifier {
   }
 
   Future<void> signOut() => _backend.signOut();
+
+  void _notifyMemberReady(Member member) {
+    final callback = onMemberReady;
+    if (callback == null) return;
+    try {
+      unawaited(callback(member).catchError((Object e) {
+        debugPrint('[auth] onMemberReady 실패(무시): $e');
+      }));
+    } catch (e) {
+      debugPrint('[auth] onMemberReady 실패(무시): $e');
+    }
+  }
 
   // 토큰 갱신(tokenRefreshed)/initialSession 이벤트마다 members를 다시 읽지 않도록
   // 세션 유무가 실제로 바뀐 경우에만 반응한다.
