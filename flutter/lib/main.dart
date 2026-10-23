@@ -9,6 +9,7 @@ import 'services/app_config.dart';
 import 'services/families_service.dart';
 import 'services/members_service.dart';
 import 'services/qr_auth_service.dart';
+import 'services/rooms_service.dart';
 import 'services/supabase_auth_backend.dart';
 import 'state/auth_controller.dart';
 import 'theme/app_theme.dart';
@@ -28,6 +29,9 @@ Future<void> main() async {
   final supabase = Supabase.instance.client;
 
   final parentAuth = ParentAuthService(supabase);
+  final authController = AuthController(SupabaseAuthBackend(supabase))
+    ..initialize();
+  final membersService = SupabaseMembersService(supabase);
   final api = ApiClient(
     baseUrl: config.backendUrl,
     httpClient: http.Client(),
@@ -49,11 +53,17 @@ Future<void> main() async {
             },
           ),
         ),
-        Provider<MembersService>.value(value: SupabaseMembersService(supabase)),
-        ChangeNotifierProvider<AuthController>(
-          create: (_) =>
-              AuthController(SupabaseAuthBackend(supabase))..initialize(),
+        Provider<MembersService>.value(value: membersService),
+        // 대화 데이터는 Supabase 직접 호출 + Realtime (ADR-004 "일상 데이터"). sender_id/member_id는
+        // AuthController가 이미 읽어 둔 members 행을 쓴다 (RLS가 auth.uid()와의 일치를 다시 검증).
+        Provider<RoomsService>.value(
+          value: SupabaseRoomsService(
+            supabase,
+            members: membersService,
+            currentMember: () async => authController.member,
+          ),
         ),
+        ChangeNotifierProvider<AuthController>.value(value: authController),
       ],
       child: const FamilyTokTokApp(),
     ),
