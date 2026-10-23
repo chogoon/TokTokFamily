@@ -117,4 +117,64 @@ void main() {
     expect(backend.memberFetches, 1);
     expect(controller.status, AuthStatus.ready);
   });
+
+  group('onMemberReady (푸시 토큰 등록 연결 지점)', () {
+    test('구성원 조회에 성공하면 그 member로 한 번 호출된다', () async {
+      final calls = <Member>[];
+      final controller = AuthController(
+        FakeAuthBackend(signedIn: true, member: _parent, familyName: '우리가족'),
+        onMemberReady: (m) async => calls.add(m),
+      );
+      await controller.initialize();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(calls.map((m) => m.id), ['m1']);
+    });
+
+    test('가족이 없으면(member null) 호출되지 않는다', () async {
+      var calls = 0;
+      final controller = AuthController(
+        FakeAuthBackend(signedIn: true),
+        onMemberReady: (_) async => calls++,
+      );
+      await controller.initialize();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(calls, 0);
+    });
+
+    test('콜백이 비동기로 throw해도 로그인은 ready로 끝난다 (soft-fail)', () async {
+      final controller = AuthController(
+        FakeAuthBackend(signedIn: true, member: _parent, familyName: '우리가족'),
+        onMemberReady: (_) async => throw Exception('push failed'),
+      );
+      await controller.initialize();
+      await Future<void>.delayed(Duration.zero);
+
+      expect(controller.status, AuthStatus.ready);
+      expect(controller.lastError, isNull);
+    });
+
+    test('콜백이 동기로 throw해도 로그인은 ready로 끝난다 (soft-fail)', () async {
+      final controller = AuthController(
+        FakeAuthBackend(signedIn: true, member: _parent, familyName: '우리가족'),
+        onMemberReady: (_) => throw StateError('sync boom'),
+      );
+      await controller.initialize();
+
+      expect(controller.status, AuthStatus.ready);
+      expect(controller.member?.id, 'm1');
+    });
+
+    test('콜백이 끝나지 않아도(권한 다이얼로그 대기 등) 로그인 완료를 막지 않는다', () async {
+      final never = Completer<void>();
+      final controller = AuthController(
+        FakeAuthBackend(signedIn: true, member: _parent, familyName: '우리가족'),
+        onMemberReady: (_) => never.future,
+      );
+      await controller.initialize();
+
+      expect(controller.status, AuthStatus.ready);
+    });
+  });
 }

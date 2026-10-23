@@ -4,10 +4,11 @@ import 'package:provider/provider.dart';
 import '../models/member.dart';
 import '../state/auth_controller.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_theme.dart';
 import '../widgets/app_logo.dart';
 import 'conversation_list_screen.dart';
 import 'family_screen.dart';
+import 'praise_screen.dart';
+import 'mood_screen.dart';
 
 /// 메인 탭 셸: 대화💬 / 기분🌈 / 칭찬⭐ / 가족👪. RN `frontend/app/(tabs)/_layout.tsx`에 대응.
 /// 로고 + 로그아웃 AppBar는 모든 탭이 공유하고, 각 탭 화면은 본문 상단에 자체 제목을 그린다.
@@ -22,6 +23,8 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _index = 0;
   final _conversationKey = GlobalKey<ConversationListScreenState>();
+  final _praiseKey = GlobalKey<PraiseScreenState>();
+  final _moodKey = GlobalKey<MoodScreenState>();
 
   static const _tabs = [
     (emoji: '💬', label: '대화'),
@@ -33,6 +36,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void _select(int index) {
     // 대화 탭에 다시 들어오면 안읽음/마지막 메시지를 새로 읽는다 (RN useFocusEffect).
     if (index == 0 && _index != 0) _conversationKey.currentState?.reload();
+    if (index == 2 && _index != 2) _praiseKey.currentState?.reload();
+    // 기분 탭도 다시 들어오면 오늘/주간 기분을 새로 읽는다.
+    if (index == 1 && _index != 1) _moodKey.currentState?.reload();
     setState(() => _index = index);
   }
 
@@ -87,8 +93,8 @@ class _HomeScreenState extends State<HomeScreen> {
       index: _index,
       children: [
         ConversationListScreen(key: _conversationKey, me: member),
-        const _ComingSoonTab(emoji: '🌈', title: '오늘의 기분'),
-        const _ComingSoonTab(emoji: '⭐', title: '칭찬판'),
+        MoodScreen(key: _moodKey, me: member),
+        PraiseScreen(key: _praiseKey, me: member),
         FamilyScreen(me: member),
       ],
     );
@@ -106,29 +112,6 @@ class _TabIcon extends StatelessWidget {
     return Opacity(
       opacity: focused ? 1 : 0.5,
       child: Text(emoji, style: const TextStyle(fontSize: 18)),
-    );
-  }
-}
-
-/// 기분/칭찬 탭 자리표시. 다음 단계에서 실제 화면으로 교체된다.
-class _ComingSoonTab extends StatelessWidget {
-  const _ComingSoonTab({required this.emoji, required this.title});
-
-  final String emoji;
-  final String title;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text('$emoji $title', style: AppTextStyles.pageTitle),
-          const SizedBox(height: 12),
-          const Text('다음 단계에서 구현됩니다', style: AppTextStyles.subtitle),
-        ],
-      ),
     );
   }
 }

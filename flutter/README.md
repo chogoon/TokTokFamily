@@ -23,3 +23,23 @@ Android 에뮬레이터는 `.env`의 `localhost`/`127.0.0.1`을 `10.0.2.2`로 �
 - `lib/screens/`, `lib/widgets/` — 화면/재사용 위젯 (`family_screen.dart` 가족 화면, `qr_issue_screen.dart` 아이 기기 연결 QR — QR은 `qr_flutter`로 렌더)
 - `lib/theme/` — `docs/UI_GUIDE.md` 토큰
 - `lib/utils/` — 입력 검증, 에러 문구 매핑, QR 카운트다운, 아이 팔레트(`kid_palette.dart` — backend `kidPalette.ts`와 동기화) 등 순수 함수 (테스트 대상)
+
+## 푸시 알림 (FCM)
+
+Flutter는 Expo 생태계가 아니므로 Expo Push 토큰 대신 **FCM registration token**을 발급받아
+`devices`에 `provider: 'fcm'`으로 등록한다 (`lib/services/devices_service.dart`). backend
+`pushDispatch.ts`가 provider별로 Expo Push API / Firebase Admin SDK로 라우팅한다.
+
+- 로그인 완료(`AuthController.refreshMember`에서 member 조회 성공) 시 `PushDeviceRegistrar`가
+  권한 요청 → `getToken()` → `devices` select-then-insert를 수행한다. 모든 실패는 삼킨다(soft-fail).
+- **Firebase 설정 파일이 없어도 앱은 정상 빌드·실행된다.** `Firebase.initializeApp()` 실패를 감지해
+  푸시 등록만 조용히 건너뛴다. Android의 `com.google.gms.google-services` 플러그인은
+  `android/app/google-services.json`이 있을 때만 적용된다(`android/app/build.gradle`).
+
+### 실제 Firebase 프로젝트 연동 (수동 — Firebase 콘솔에서 별도 진행 필요)
+
+1. Firebase 콘솔에서 프로젝트 생성 후 Android 앱(`com.familytoktok.family_toktok`)과 iOS 앱(Runner의 Bundle ID) 등록.
+2. `google-services.json` → `flutter/android/app/`, `GoogleService-Info.plist` → Xcode로 `ios/Runner`에 추가(타깃 포함).
+3. iOS: Apple Developer에서 APNs 인증 키(.p8)를 발급해 Firebase 콘솔 > Cloud Messaging에 업로드하고,
+   Xcode에서 Push Notifications / Background Modes(Remote notifications) capability 추가.
+4. backend: Firebase 콘솔 > 서비스 계정에서 비공개 키(JSON)를 받아 `FIREBASE_SERVICE_ACCOUNT_KEY` 환경변수로 설정.

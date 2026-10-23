@@ -1,3 +1,7 @@
+import 'dart:async';
+import 'dart:io' show Platform;
+
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
@@ -6,8 +10,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'screens/auth_gate.dart';
 import 'services/api_client.dart';
 import 'services/app_config.dart';
+import 'services/devices_service.dart';
 import 'services/families_service.dart';
 import 'services/members_service.dart';
+import 'services/moods_service.dart';
+import 'services/praises_service.dart';
+import 'services/push_notifications_service.dart';
 import 'services/qr_auth_service.dart';
 import 'services/rooms_service.dart';
 import 'services/supabase_auth_backend.dart';
@@ -29,8 +37,25 @@ Future<void> main() async {
   final supabase = Supabase.instance.client;
 
   final parentAuth = ParentAuthService(supabase);
-  final authController = AuthController(SupabaseAuthBackend(supabase))
-    ..initialize();
+
+  // FCM 푸시 토큰 등록 (선택 기능). Firebase 설정 파일이 없으면 조용히 건너뛴다.
+  final pushNotifications = PushNotificationsService(
+    FirebasePushMessagingGateway(),
+    osName: kIsWeb ? null : Platform.operatingSystem,
+  );
+  unawaited(pushNotifications.configureNotificationHandler());
+  late final AuthController authController;
+  final pushRegistrar = PushDeviceRegistrar(
+    push: pushNotifications,
+    devices: SupabaseDevicesService(
+      supabase,
+      currentMember: () async => authController.member,
+    ),
+  );
+  authController = AuthController(
+    SupabaseAuthBackend(supabase),
+    onMemberReady: (_) => pushRegistrar.register(),
+  )..initialize();
   final membersService = SupabaseMembersService(supabase);
   final api = ApiClient(
     baseUrl: config.backendUrl,
@@ -60,6 +85,21 @@ Future<void> main() async {
           value: SupabaseRoomsService(
             supabase,
             members: membersService,
+            currentMember: () async => authController.member,
+          ),
+        ),
+        // 칭찬판도 Supabase 직접 호출 (ADR-004). 접근 범위는 RLS(praise_boards/praises)가 강제한다.
+        Provider<PraisesService>.value(
+          value: SupabasePraisesService(
+            supabase,
+            members: membersService,
+            currentMember: () async => authController.member,
+          ),
+        ),
+        // 기분도 Supabase 직접 호출 (ADR-004). 이유(note) 공개 범위는 RLS(mood_notes_select)가 강제한다.
+        Provider<MoodsService>.value(
+          value: SupabaseMoodsService(
+            supabase,
             currentMember: () async => authController.member,
           ),
         ),
